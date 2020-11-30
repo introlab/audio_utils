@@ -35,8 +35,8 @@ public:
     {
         m_audioSub = m_nodeHandle.subscribe("audio_in", 10, &BeatDetectorNode::audioCallback, this);
 
-        m_bpmPub = m_nodeHandle.advertise<std_msgs::Float32>("dance/bpm", 1000);
-        m_beatPub = m_nodeHandle.advertise<std_msgs::Bool>("dance/beat", 1000);
+        m_bpmPub = m_nodeHandle.advertise<std_msgs::Float32>("bpm", 1000);
+        m_beatPub = m_nodeHandle.advertise<std_msgs::Bool>("beat", 1000);
     }
 
     void audioCallback(const audio_utils::AudioFramePtr& msg)
