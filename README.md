@@ -1,5 +1,6 @@
 # audio_utils
 ROS nodes and utilities for audio streams.
+Author(s): Marc-Antoine Maheux
 
 ## Setup (Ubuntu)
 The following subsections explain how to use the library on Ubuntu.
