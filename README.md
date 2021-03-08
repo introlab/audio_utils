@@ -115,3 +115,14 @@ This node writes the raw sound data to a file.
 
 ### Subscribed Topics
  - `audio_in` ([audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)) The sound topic to write.
+
+
+# License
+
+* [GPL-3.0 License ](LICENSE)
+
+# Sponsor
+
+![IntRoLab](https://introlab.3it.usherbrooke.ca/IntRoLab.png)
+
+[IntRoLab - Intelligent / Interactive / Integrated / Interdisciplinary Robot Lab](https://introlab.3it.usherbrooke.ca)
