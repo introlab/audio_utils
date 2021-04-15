@@ -27,7 +27,7 @@ This node captures the sound from an ALSA device and publishes it to a topic.
  - `sampling_frequency` (int): The device sampling frequency.
  - `frame_sample_count` (int): The number of samples in each frame.
  - `merge` (bool): Indicate to merge the channels or not.
- - `merge_gain`: The gain to apply after the merge.
+ - `merge_gain` (double): The gain to apply after the merge.
 
 ### Published Topics
  - `audio_out` ([audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)) The captured sound.
