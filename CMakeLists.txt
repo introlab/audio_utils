@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.0.2)
 
+set(MUSIC_BEAT_DETECTOR_ENABLE_TESTS OFF)
 add_subdirectory(src/MusicBeatDetector)
 
 project(audio_utils)
