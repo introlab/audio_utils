@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.2)
 
-set(MUSIC_BEAT_DETECTOR_ENABLE_TESTS OFF)
+set(MUSIC_BEAT_DETECTOR_ENABLE_TESTS OFF CACHE BOOL "")
 add_subdirectory(src/MusicBeatDetector)
 
 project(audio_utils)
