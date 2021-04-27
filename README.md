@@ -11,6 +11,16 @@ The following subsections explain how to use the library on Ubuntu.
 sudo apt-get install cmake build-essential gfortran texinfo libasound2-dev
 ```
 
+### Install Python Dependencies
+```bash
+sudo pip install -r requirements.txt
+```
+or
+```bash
+sudo pip3 install -r requirements.txt
+```
+
+
 ### Setup Submodules
 ```bash
 git submodule update --init --recursive
