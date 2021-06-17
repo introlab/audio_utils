@@ -1,0 +1,71 @@
+<launch>
+    <!-- Alsa will use software mixer on this device -->
+    <arg name="device" default="default"/>
+    <arg name="format" default="signed_16"/>
+    <arg name="channel_count" default="1"/>
+    <arg name="sampling_frequency" default="48000"/>
+    <!-- 10 ms frame size -->
+    <arg name="frame_sample_count" default="4800"/>
+    
+    <!--alsa_playback_node 1-->
+    <node pkg="audio_utils" type="alsa_playback_node" name="playback_node_1" output="screen">
+        <param name="device" type="string" value="$(arg device)"/>
+        <param name="format" type="string" value="$(arg format)"/>
+        <param name="channel_count" type="int" value="$(arg channel_count)"/>
+        <param name="sampling_frequency" type="int" value="$(arg sampling_frequency)"/>
+        <param name="frame_sample_count" type="int" value="$(arg frame_sample_count)"/>
+        <remap from="/audio_in" to="/audio_in/1"/>  
+    </node>
+      
+    <!--alsa_playback_node 2-->
+    <node pkg="audio_utils" type="alsa_playback_node" name="playback_node_2" output="screen">
+        <param name="device" type="string" value="$(arg device)"/>
+        <param name="format" type="string" value="$(arg format)"/>
+        <param name="channel_count" type="int" value="$(arg channel_count)"/>
+        <param name="sampling_frequency" type="int" value="$(arg sampling_frequency)"/>
+        <param name="frame_sample_count" type="int" value="$(arg frame_sample_count)"/>
+        <remap from="/audio_in" to="/audio_in/2"/>  
+    </node>
+    
+    <!--alsa_playback_node 3-->
+    <node pkg="audio_utils" type="alsa_playback_node" name="playback_node_3" output="screen">
+        <param name="device" type="string" value="$(arg device)"/>
+        <param name="format" type="string" value="$(arg format)"/>
+        <param name="channel_count" type="int" value="$(arg channel_count)"/>
+        <param name="sampling_frequency" type="int" value="$(arg sampling_frequency)"/>
+        <param name="frame_sample_count" type="int" value="$(arg frame_sample_count)"/>
+        <remap from="/audio_in" to="/audio_in/3"/>  
+    </node>
+	
+	<!-- sine_node 1-->
+    <node pkg="audio_utils" type="sine_out_node.py" name="sine_node_1" output="screen">
+        <param name="format" type="string" value="$(arg format)"/>
+        <param name="sampling_frequency" type="int" value="$(arg sampling_frequency)"/>
+        <param name="frame_sample_count" type="int" value="$(arg frame_sample_count)"/>
+        <param name="sine_frequency_hz" type="int" value="440"/>
+        <param name="amplitude" type="int" value="15000"/>
+        <remap from="/audio_out" to="/audio_in/1"/>  
+    </node>
+    
+    <!-- sine_node 2-->
+    <node pkg="audio_utils" type="sine_out_node.py" name="sine_node_2" output="screen">
+        <param name="format" type="string" value="$(arg format)"/>
+        <param name="sampling_frequency" type="int" value="$(arg sampling_frequency)"/>
+        <param name="frame_sample_count" type="int" value="$(arg frame_sample_count)"/>
+        <param name="sine_frequency_hz" type="int" value="880"/>
+        <param name="amplitude" type="int" value="15000"/>
+        <remap from="/audio_out" to="/audio_in/2"/>  
+    </node>
+    
+    <!-- sine_node 3-->
+    <node pkg="audio_utils" type="sine_out_node.py" name="sine_node_3" output="screen">
+        <param name="format" type="string" value="$(arg format)"/>
+        <param name="sampling_frequency" type="int" value="$(arg sampling_frequency)"/>
+        <param name="frame_sample_count" type="int" value="$(arg frame_sample_count)"/>
+        <param name="sine_frequency_hz" type="int" value="1760"/>
+        <param name="amplitude" type="int" value="15000"/>
+        <remap from="/audio_out" to="/audio_in/3"/>  
+    </node>
+   
+    
+</launch>

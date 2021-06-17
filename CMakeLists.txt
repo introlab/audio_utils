@@ -192,6 +192,7 @@ catkin_install_python(PROGRAMS
   scripts/raw_file_writer_node.py
   scripts/resampling_node.py
   scripts/split_channel_node.py
+  scripts/sine_out_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
