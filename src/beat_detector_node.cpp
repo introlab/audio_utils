@@ -19,12 +19,15 @@ class BeatDetectorNode
     ros::NodeHandle m_privateNodeHandle;
 
     ros::Subscriber m_audioSub;
+    ros::Subscriber m_beatDetectionEnableSub;
 
     ros::Publisher m_bpmPub;
     ros::Publisher m_beatPub;
 
     std_msgs::Float32 m_bpmMsg;
     std_msgs::Bool m_beatMsg;
+
+    bool m_beatDetectionEnable = false;
 
     MusicBeatDetector m_musicBeatDetector;
 
@@ -34,13 +37,26 @@ public:
         m_musicBeatDetector(SupportedSamplingFrequency, SupportedFrameSampleCount)
     {
         m_audioSub = m_nodeHandle.subscribe("audio_in", 10, &BeatDetectorNode::audioCallback, this);
+        m_beatDetectionEnableSub = m_nodeHandle.subscribe("beat_detection_enable", 10, &BeatDetectorNode::beatDetectionEnableCallback, this);
 
         m_bpmPub = m_nodeHandle.advertise<std_msgs::Float32>("bpm", 1000);
         m_beatPub = m_nodeHandle.advertise<std_msgs::Bool>("beat", 1000);
+
+        m_nodeHandle.param<bool>("enable", m_beatDetectionEnable, false);
+    }
+
+    void beatDetectionEnableCallback(const std_msgs::Bool& msg)
+    {
+        m_beatDetectionEnable = msg.data;
     }
 
     void audioCallback(const audio_utils::AudioFramePtr& msg)
     {
+        if (!m_beatDetectionEnable)
+        {
+            return;
+        }
+
         if (msg->channel_count != SupportedChannelCount ||
             msg->sampling_frequency != SupportedSamplingFrequency ||
             msg->frame_sample_count != SupportedFrameSampleCount)
