@@ -43,6 +43,7 @@ int main(int argc, char **argv)
     int channelCount;
     int samplingFrequency;
     int frameSampleCount;
+    int latencyUs;
 
     bool merge;
     float merge_gain;
@@ -54,7 +55,8 @@ int main(int argc, char **argv)
     privateNodeHandle.getParam("channel_count", channelCount);
     privateNodeHandle.getParam("sampling_frequency", samplingFrequency);
     privateNodeHandle.getParam("frame_sample_count", frameSampleCount);
-    
+    privateNodeHandle.getParam("latency_us", latencyUs);
+
 
     privateNodeHandle.getParam("merge", merge);
     privateNodeHandle.getParam("merge_gain", merge_gain);
@@ -67,7 +69,7 @@ int main(int argc, char **argv)
 
     try
     {
-        AlsaPcmDevice captureDevice(device, AlsaPcmDevice::Stream::Capture, format, channelCount, frameSampleCount, samplingFrequency);
+        AlsaPcmDevice captureDevice(device, AlsaPcmDevice::Stream::Capture, format, channelCount, frameSampleCount, samplingFrequency, latencyUs);
         PcmAudioFrame manyChannelFrame(format, channelCount, frameSampleCount);
         PcmAudioFrame oneChannelFrame(format, 1, frameSampleCount);
 
@@ -77,7 +79,7 @@ int main(int argc, char **argv)
             captureDevice.read(manyChannelFrame);
 
             if (merge)
-            {                
+            {
                 mergeChannels(manyChannelFrame, oneChannelFrame, merge_gain);
                 audioFrameMsg.data = vector<uint8_t>(oneChannelFrame.data(), oneChannelFrame.data() + oneChannelFrame.size());
             }

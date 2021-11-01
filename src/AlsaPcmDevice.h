@@ -43,7 +43,8 @@ namespace introlab
             PcmAudioFrameFormat format,
             std::size_t channelCount,
             std::size_t frameSampleCount,
-            std::size_t sampleFrequency);
+            std::size_t sampleFrequency,
+            unsigned int latencyUs);
         ~AlsaPcmDevice();
 
         DECLARE_NOT_COPYABLE(AlsaPcmDevice);

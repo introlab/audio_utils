@@ -42,9 +42,11 @@ public:
         m_samplingFrequency = tmp;
         m_privateNodeHandle.getParam("frame_sample_count", tmp);
         m_frameSampleCount = tmp;
+        m_privateNodeHandle.getParam("latency_us", tmp);
+        unsigned int latencyUs = tmp;
 
-        m_captureDevice = make_unique<AlsaPcmDevice>(m_device, AlsaPcmDevice::Stream::Playback, 
-            m_format, m_channelCount, m_frameSampleCount, m_samplingFrequency);
+        m_captureDevice = make_unique<AlsaPcmDevice>(m_device, AlsaPcmDevice::Stream::Playback,
+            m_format, m_channelCount, m_frameSampleCount, m_samplingFrequency, latencyUs);
 
         m_audioSub = m_nodeHandle.subscribe("audio_in", 10, &AlsaPlaybackNode::audioCallback, this);
     }
@@ -78,6 +80,6 @@ int main(int argc, char **argv)
 
     AlsaPlaybackNode node;
     node.run();
- 
+
     return 0;
 }

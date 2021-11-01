@@ -26,7 +26,8 @@ AlsaPcmDevice::AlsaPcmDevice(const string& device,
     PcmAudioFrameFormat format,
     size_t channelCount,
     size_t frameSampleCount,
-    size_t sampleFrequency) : m_format(format), m_channelCount(channelCount), m_frameSampleCount(frameSampleCount)
+    size_t sampleFrequency,
+    unsigned int latencyUs) : m_format(format), m_channelCount(channelCount), m_frameSampleCount(frameSampleCount)
 {
     int err;
     snd_pcm_t* pcmHandlePointer;
@@ -75,6 +76,11 @@ AlsaPcmDevice::AlsaPcmDevice(const string& device,
     if ((err = snd_pcm_hw_params_set_period_size(pcmHandle.get(), params.get(), periodSize, 0)) < 0)
     {
         THROW_ALSA_EXCEPTION("Cannot set period size", err, snd_strerror(err));
+    }
+
+    if ((err = snd_pcm_hw_params_set_buffer_time_near(pcmHandle.get(), params.get(), &latencyUs, NULL)) < 0)
+    {
+        THROW_ALSA_EXCEPTION("Cannot set buffer time", err, snd_strerror(err));
     }
 
     if ((err = snd_pcm_hw_params(pcmHandle.get(), params.get())) < 0)
