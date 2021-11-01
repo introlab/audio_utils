@@ -38,6 +38,7 @@ This node captures the sound from an ALSA device and publishes it to a topic.
  - `frame_sample_count` (int): The number of samples in each frame.
  - `merge` (bool): Indicate to merge the channels or not.
  - `merge_gain` (double): The gain to apply after the merge.
+ - `latency_us` (int): The capture latency in microseconds.
 
 ### Published Topics
  - `audio_out` ([audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)) The captured sound.
@@ -52,6 +53,7 @@ This node captures the sound from a topic and plays it to an ALSA device.
  - `channel_count` (int): The device channel count.
  - `sampling_frequency` (int): The device sampling frequency.
  - `frame_sample_count` (int): The number of samples in each frame.
+ - `latency_us` (int): The playback latency in microseconds.
 
 ### Subscribed Topics
  - `audio_in` ([audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)) The sound to play.

@@ -35,7 +35,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nodeHandle;
     ros::NodeHandle privateNodeHandle("~");
 
-    ros::Publisher audioPub = nodeHandle.advertise<audio_utils::AudioFrame>("audio_out", 10);
+    ros::Publisher audioPub = nodeHandle.advertise<audio_utils::AudioFrame>("audio_out", 100);
 
     string device;
     string formatString;

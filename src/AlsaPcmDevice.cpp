@@ -6,7 +6,6 @@
 
 #include <Utils/Exception/NotSupportedException.h>
 #include <Utils/Exception/InvalidValueException.h>
-
 #include <map>
 
 using namespace introlab;

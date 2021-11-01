@@ -48,7 +48,7 @@ public:
         m_captureDevice = make_unique<AlsaPcmDevice>(m_device, AlsaPcmDevice::Stream::Playback,
             m_format, m_channelCount, m_frameSampleCount, m_samplingFrequency, latencyUs);
 
-        m_audioSub = m_nodeHandle.subscribe("audio_in", 10, &AlsaPlaybackNode::audioCallback, this);
+        m_audioSub = m_nodeHandle.subscribe("audio_in", 100, &AlsaPlaybackNode::audioCallback, this);
     }
 
     void audioCallback(const audio_utils::AudioFramePtr& msg)
