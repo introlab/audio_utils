@@ -152,6 +152,15 @@ void AlsaPcmDevice::write(const PcmAudioFrame& frame)
     }
 }
 
+void AlsaPcmDevice::wait()
+{
+    int err = snd_pcm_wait(m_pcmHandle.get(), -1);
+    if (err != 1)
+    {
+        THROW_ALSA_EXCEPTION("snd_pcm_wait failed", err, snd_strerror(err));
+    }
+}
+
 snd_pcm_format_t AlsaPcmDevice::convert(PcmAudioFrameFormat format)
 {
     const map<PcmAudioFrameFormat, snd_pcm_format_t> Mapping(

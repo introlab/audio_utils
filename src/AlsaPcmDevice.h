@@ -52,6 +52,7 @@ namespace introlab
 
         bool read(PcmAudioFrame& frame);
         void write(const PcmAudioFrame& frame);
+        void wait();
 
     private:
         static snd_pcm_format_t convert(PcmAudioFrameFormat format);
