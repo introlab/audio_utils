@@ -43,7 +43,8 @@ namespace introlab
             PcmAudioFrameFormat format,
             std::size_t channelCount,
             std::size_t frameSampleCount,
-            std::size_t sampleFrequency);
+            std::size_t sampleFrequency,
+            unsigned int latencyUs);
         ~AlsaPcmDevice();
 
         DECLARE_NOT_COPYABLE(AlsaPcmDevice);
@@ -51,6 +52,7 @@ namespace introlab
 
         bool read(PcmAudioFrame& frame);
         void write(const PcmAudioFrame& frame);
+        void wait();
 
     private:
         static snd_pcm_format_t convert(PcmAudioFrameFormat format);

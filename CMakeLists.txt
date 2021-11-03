@@ -147,7 +147,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(beat_detector_node src/beat_detector_node.cpp)
 add_executable(alsa_capture_node src/alsa_capture_node.cpp src/AlsaException.cpp src/AlsaPcmDevice.cpp)
-add_executable(alsa_playback_node src/alsa_playback_node.cpp src/AlsaException.cpp src/AlsaPcmDevice.cpp)
+add_executable(alsa_playback_node src/alsa_playback_node.cpp src/AlsaException.cpp src/AlsaPcmDevice.cpp src/Semaphore.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
