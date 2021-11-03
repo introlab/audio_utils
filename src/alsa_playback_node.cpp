@@ -6,11 +6,8 @@
 #include <ros/ros.h>
 
 #include <memory>
-#include <deque>
 #include <chrono>
 #include <atomic>
-#include <thread>
-#include <mutex>
 
 using namespace introlab;
 using namespace std;
