@@ -1,4 +1,5 @@
 #include "AlsaPcmDevice.h"
+#include "Semaphore.h"
 
 #include <audio_utils/AudioFrame.h>
 
@@ -6,9 +7,10 @@
 
 #include <memory>
 #include <deque>
-#include <mutex>
 #include <chrono>
 #include <atomic>
+#include <thread>
+#include <mutex>
 
 using namespace introlab;
 using namespace std;
@@ -24,15 +26,13 @@ class AlsaPlaybackNode
     size_t m_samplingFrequency;
     size_t m_frameSampleCount;
     PcmAudioFrameFormat m_format;
-    size_t m_frameQueueSize;
 
     unique_ptr<AlsaPcmDevice> m_playbackDevice;
     unique_ptr<PcmAudioFrame> m_emptyFrame;
 
-    deque<audio_utils::AudioFramePtr> m_queue;
-    bool m_started;
-    mutex m_mutex;
-
+    audio_utils::AudioFramePtr m_pendingFrame;
+    Semaphore m_pendingFrameWriteSemaphore;
+    Semaphore m_pendingFrameReadSemaphore;
     atomic<chrono::time_point<chrono::system_clock>> m_lastAudioFrameTime;
     chrono::nanoseconds m_frameDuration;
 
@@ -41,7 +41,8 @@ class AlsaPlaybackNode
 public:
     AlsaPlaybackNode() :
         m_privateNodeHandle("~"),
-        m_started(false),
+        m_pendingFrameWriteSemaphore(1),
+        m_pendingFrameReadSemaphore(0),
         m_lastAudioFrameTime(chrono::system_clock::now())
     {
         m_privateNodeHandle.getParam("device", m_device);
@@ -57,9 +58,6 @@ public:
         m_frameSampleCount = tmp;
         m_privateNodeHandle.getParam("latency_us", tmp);
         unsigned int latencyUs = tmp;
-
-        m_privateNodeHandle.getParam("frame_queue_size", tmp);
-        m_frameQueueSize = tmp;
 
         m_frameDuration = chrono::milliseconds(1000 * m_frameSampleCount / m_samplingFrequency);
 
@@ -84,9 +82,10 @@ public:
             return;
         }
 
-        lock_guard<mutex> lock(m_mutex);
-        m_queue.push_back(msg);
+        m_pendingFrameWriteSemaphore.acquire();
+        m_pendingFrame = msg;
         m_lastAudioFrameTime.store(chrono::system_clock::now());
+        m_pendingFrameReadSemaphore.release();
     }
 
     void run()
@@ -98,54 +97,24 @@ public:
         {
             writeStep();
         }
+
+        m_pendingFrameWriteSemaphore.release();
     }
 
     void writeStep()
     {
         m_playbackDevice->wait();
-        auto duration = chrono::system_clock::now().time_since_epoch();
-        auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
 
-        size_t queueSize;
+        if (m_pendingFrameReadSemaphore.tryAcquireFor(m_frameDuration / 2))
         {
-            lock_guard<mutex> lock(m_mutex);
-            queueSize = m_queue.size();
+            PcmAudioFrame frame(m_format, m_channelCount, m_frameSampleCount, m_pendingFrame->data.data());
+            m_playbackDevice->write(frame);
+            m_pendingFrameWriteSemaphore.release();
         }
-
-        if ((chrono::system_clock::now() - m_lastAudioFrameTime.load()) > 2 * m_frameDuration || queueSize == 0)
+        else if ((chrono::system_clock::now() - m_lastAudioFrameTime.load()) > 2 * m_frameDuration)
         {
-            m_started = false;
+            m_playbackDevice->write(*m_emptyFrame);
         }
-        if (!m_started && queueSize >= m_frameQueueSize)
-        {
-            m_started = true;
-        }
-
-        if (m_started)
-        {
-            writeNextFrame();
-        }
-        else
-        {
-            writeEmptyFrame();
-        }
-    }
-
-    void writeNextFrame()
-    {
-        audio_utils::AudioFramePtr msg;
-        {
-            lock_guard<mutex> lock(m_mutex);
-            msg = m_queue.front();
-            m_queue.pop_front();
-        }
-        PcmAudioFrame frame(m_format, m_channelCount, m_frameSampleCount, msg->data.data());
-        m_playbackDevice->write(frame);
-    }
-
-    void writeEmptyFrame()
-    {
-        m_playbackDevice->write(*m_emptyFrame);
     }
 };
 
