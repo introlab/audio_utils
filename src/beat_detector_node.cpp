@@ -19,7 +19,6 @@ class BeatDetectorNode
     ros::NodeHandle m_privateNodeHandle;
 
     ros::Subscriber m_audioSub;
-    ros::Subscriber m_beatDetectionEnableSub;
 
     ros::Publisher m_bpmPub;
     ros::Publisher m_beatPub;
@@ -27,7 +26,6 @@ class BeatDetectorNode
     std_msgs::Float32 m_bpmMsg;
     std_msgs::Bool m_beatMsg;
 
-    bool m_beatDetectionEnable;
     size_t m_samplingFrequency;
     size_t m_frameSampleCount;
 
@@ -46,7 +44,6 @@ public:
         float maxBpm;
         int bpmCandidateCount;
 
-        m_privateNodeHandle.param<bool>("enable", m_beatDetectionEnable, false);
         m_privateNodeHandle.param<int>("sampling_frequency", samplingFrequency, 44100);
         m_privateNodeHandle.param<int>("frame_sample_count", frameSampleCount, 128);
         m_privateNodeHandle.param<int>("oss_ftt_window_size", ossFttWindowSize, 1024);
@@ -69,24 +66,12 @@ public:
             static_cast<size_t>(bpmCandidateCount));
 
         m_audioSub = m_nodeHandle.subscribe("audio_in", 10, &BeatDetectorNode::audioCallback, this);
-        m_beatDetectionEnableSub = m_nodeHandle.subscribe("beat_detection_enable", 10, &BeatDetectorNode::beatDetectionEnableCallback, this);
 
         m_bpmPub = m_nodeHandle.advertise<std_msgs::Float32>("bpm", 1000);
         m_beatPub = m_nodeHandle.advertise<std_msgs::Bool>("beat", 1000);
     }
-
-    void beatDetectionEnableCallback(const std_msgs::Bool& msg)
-    {
-        m_beatDetectionEnable = msg.data;
-    }
-
     void audioCallback(const audio_utils::AudioFramePtr& msg)
     {
-        if (!m_beatDetectionEnable)
-        {
-            return;
-        }
-
         if (msg->channel_count != SupportedChannelCount ||
             msg->sampling_frequency != m_samplingFrequency ||
             msg->frame_sample_count != m_frameSampleCount)
