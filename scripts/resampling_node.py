@@ -34,8 +34,8 @@ class ResamplingNode:
         self._output_buffer = np.zeros((self._channel_count, self._output_step * 3))
 
 
-        self._audio_pub = rospy.Publisher('audio_out', AudioFrame, queue_size=10)
-        self._audio_sub = rospy.Subscriber('audio_in', AudioFrame, self._audio_cb, queue_size=10)
+        self._audio_pub = rospy.Publisher('audio_out', AudioFrame, queue_size=100)
+        self._audio_sub = rospy.Subscriber('audio_in', AudioFrame, self._audio_cb, queue_size=100)
 
     def _create_initialiaze_audio_frame_msg(self):
         audio_frame_msg = AudioFrame()
