@@ -31,8 +31,7 @@ class ResamplingNode:
         self._input_window = np.sqrt(scipy.signal.hann(self._input_frame_sample_count))
         self._output_window = np.sqrt(scipy.signal.hann(self._output_frame_sample_count))
         self._input_buffer = np.zeros((self._channel_count, self._input_step * 3))
-        self._output_buffer = np.zeros((self._channel_count, self._output_step * 3))
-
+        self._output_buffer = np.zeros((self._channel_count, int(self._output_frame_sample_count * 3 / 2)))
 
         self._audio_pub = rospy.Publisher('audio_out', AudioFrame, queue_size=100)
         self._audio_sub = rospy.Subscriber('audio_in', AudioFrame, self._audio_cb, queue_size=100)
@@ -73,7 +72,7 @@ class ResamplingNode:
         self._output_buffer[i, self._output_step:] = 0
         self._output_buffer[i, :self._output_frame_sample_count] += output_window1
         self._output_buffer[i, self._output_step:] += output_window2
-        
+
         self._input_buffer[i] = np.roll(self._input_buffer[i], self._input_step)
         self._output_buffer[i] = np.roll(self._output_buffer[i], self._output_step)
 

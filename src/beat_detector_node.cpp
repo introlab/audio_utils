@@ -74,7 +74,7 @@ public:
     {
         if (msg->channel_count != SupportedChannelCount ||
             msg->sampling_frequency != m_samplingFrequency ||
-            msg->frame_sample_count != m_frameSampleCount)
+            (msg->frame_sample_count % m_frameSampleCount) != 0)
         {
             ROS_ERROR("Not supported audio frame (msg->channel_count=%d, sampling_frequency=%d, frame_sample_count=%d)",
                 msg->channel_count, msg->sampling_frequency, msg->frame_sample_count);
@@ -83,9 +83,13 @@ public:
 
         PcmAudioFrame frame(parseFormat(msg->format), msg->channel_count, msg->frame_sample_count, msg->data.data());
 
-        Beat beat = m_musicBeatDetector->detect(frame);
-        m_bpmMsg.data = beat.bpm;
-        m_beatMsg.data = beat.isBeat;
+        m_beatMsg.data = false;
+        for (size_t i = 0; i < msg->frame_sample_count; i += m_frameSampleCount)
+        {
+            Beat beat = m_musicBeatDetector->detect(frame.slice(i, m_frameSampleCount));
+            m_bpmMsg.data = beat.bpm;
+            m_beatMsg.data = m_beatMsg.data || beat.isBeat;
+        }
 
         m_bpmPub.publish(m_bpmMsg);
         m_beatPub.publish(m_beatMsg);
