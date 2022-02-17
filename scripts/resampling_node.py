@@ -74,7 +74,7 @@ class Resampler:
         self._set_rospy_input_parameters(
             self._input_frame_converter.frame_info)
 
-        self._audio_frame_msg = self._create_initialiaze_audio_frame_msg(
+        self._audio_frame_msg = self._create_initialiazed_audio_frame_msg(
             self._output_frame_converter.frame_info)
 
     def resample(self, frame: AudioFrame) -> AudioFrame:
@@ -97,7 +97,7 @@ class Resampler:
         return self._audio_frame_msg
 
     @staticmethod
-    def _create_initialiaze_audio_frame_msg(output_frame_info: FrameInfo) -> AudioFrame:
+    def _create_initialiazed_audio_frame_msg(output_frame_info: FrameInfo) -> AudioFrame:
         audio_frame_msg = AudioFrame()
         audio_frame_msg.format = output_frame_info.format
         audio_frame_msg.channel_count = output_frame_info.channel_count
@@ -148,7 +148,7 @@ class Resampler:
 
         self._set_rospy_input_parameters(new_input_info)
 
-        self._audio_frame_msg = self._create_initialiaze_audio_frame_msg(
+        self._audio_frame_msg = self._create_initialiazed_audio_frame_msg(
             self._output_frame_converter.frame_info)
 
     @staticmethod
