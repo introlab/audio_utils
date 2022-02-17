@@ -196,9 +196,10 @@ class StaticResamplingOnCallbackStrategy(OnCallbackStrategy):
         if not resampler.is_same_input_frame_info(FrameInfo.from_audio_frame(msg)):
             input_param = resampler.input_frame_info
             rospy.logerr(
-                f"Invalid frame ({msg.format=}, {input_param.format=}, {msg.channel_count=}, "
-                f"{input_param.channel_count=}, {msg.sampling_frequency=}, "
-                f"{input_param.sampling_frequency=}, {msg.frame_sample_count=}, {input_param.frame_sample_count=})"
+                f"Invalid frame (msg.format={msg.format}, input_param.format={input_param.format}, "
+                f"msg.channel_count={msg.channel_count}, input_param.channel_count={input_param.channel_count}, "
+                f"msg.sampling_frequency={msg.sampling_frequency}, input_param.sampling_frequency={input_param.sampling_frequency}, "
+                f"msg.frame_sample_count={msg.frame_sample_count}, input_param.frame_sample_count={input_param.frame_sample_count})"
             )
             return
 
@@ -232,7 +233,8 @@ class DynamicResamplingOnCallbackStrategy(OnCallbackStrategy):
             if resampler.input_frame_info.channel_count != msg.channel_count:
                 input_param = resampler.input_frame_info
                 rospy.logerr(
-                    f"Invalid channel_count: ({msg.channel_count=}, {input_param.channel_count=}) can't change dynamically")
+                    f"Invalid channel_count: (msg.channel_count={msg.channel_count}, "
+                    f"input_param.channel_count={input_param.channel_count}) can't change dynamically")
                 return
 
             # We update the input frame info
