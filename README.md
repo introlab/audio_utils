@@ -94,6 +94,7 @@ This node resamples an audio topic.
  - `input_sampling_frequency` (int): The input sampling frequency.
  - `output_sampling_frequency` (int): The output sampling frequency.
  - `input_frame_sample_count` (int): The number of samples in each frame of the input.
+ - `dynamic_input_resampling` (bool: default is `false`): If `true`, always adjust the input sampling informations (format, sampling frequency and frame sample count) to the sampling informations of the reveiced frames, dynamically. In this mode, `input_format`, `input_sampling_frequency` and `input_frame_sample_count` are not required, but they can be used to save a recomputation if the starting input sampling informations are known.
 
 ### Subscribed Topics
  - `audio_in` ([audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)) The sound topic to resample.
