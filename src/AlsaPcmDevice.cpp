@@ -4,8 +4,8 @@
 
 #include "AlsaException.h"
 
-#include <Utils/Exception/NotSupportedException.h>
 #include <Utils/Exception/InvalidValueException.h>
+#include <Utils/Exception/NotSupportedException.h>
 #include <map>
 
 using namespace introlab;
@@ -14,19 +14,20 @@ using namespace std;
 class PcmParamsDeleter
 {
 public:
-    void operator()(snd_pcm_hw_params_t* handle)
-    {
-        snd_pcm_hw_params_free(handle);
-    }
+    void operator()(snd_pcm_hw_params_t* handle) { snd_pcm_hw_params_free(handle); }
 };
 
-AlsaPcmDevice::AlsaPcmDevice(const string& device,
+AlsaPcmDevice::AlsaPcmDevice(
+    const string& device,
     AlsaPcmDevice::Stream stream,
     PcmAudioFrameFormat format,
     size_t channelCount,
     size_t frameSampleCount,
     size_t sampleFrequency,
-    unsigned int latencyUs) : m_format(format), m_channelCount(channelCount), m_frameSampleCount(frameSampleCount)
+    unsigned int latencyUs)
+    : m_format(format),
+      m_channelCount(channelCount),
+      m_frameSampleCount(frameSampleCount)
 {
     int err;
     snd_pcm_t* pcmHandlePointer;
@@ -95,15 +96,11 @@ AlsaPcmDevice::AlsaPcmDevice(const string& device,
     m_pcmHandle = move(pcmHandle);
 }
 
-AlsaPcmDevice::~AlsaPcmDevice()
-{
-
-}
+AlsaPcmDevice::~AlsaPcmDevice() {}
 
 bool AlsaPcmDevice::read(PcmAudioFrame& frame)
 {
-    if (frame.format() != m_format ||
-        frame.channelCount() != m_channelCount ||
+    if (frame.format() != m_format || frame.channelCount() != m_channelCount ||
         frame.sampleCount() != m_frameSampleCount)
     {
         THROW_INVALID_VALUE_EXCEPTION("format, channelCount, sampleCount", "");
@@ -126,8 +123,7 @@ bool AlsaPcmDevice::read(PcmAudioFrame& frame)
 
 void AlsaPcmDevice::write(const PcmAudioFrame& frame)
 {
-    if (frame.format() != m_format ||
-        frame.channelCount() != m_channelCount ||
+    if (frame.format() != m_format || frame.channelCount() != m_channelCount ||
         frame.sampleCount() != m_frameSampleCount)
     {
         THROW_INVALID_VALUE_EXCEPTION("format, channelCount, sampleCount", "");
@@ -164,20 +160,18 @@ void AlsaPcmDevice::wait()
 snd_pcm_format_t AlsaPcmDevice::convert(PcmAudioFrameFormat format)
 {
     const map<PcmAudioFrameFormat, snd_pcm_format_t> Mapping(
-        {
-            { PcmAudioFrameFormat::Signed8, SND_PCM_FORMAT_S8 },
-            { PcmAudioFrameFormat::Signed16, SND_PCM_FORMAT_S16_LE },
-            { PcmAudioFrameFormat::Signed24, SND_PCM_FORMAT_S24_LE },
-            { PcmAudioFrameFormat::Signed32, SND_PCM_FORMAT_S32_LE },
+        {{PcmAudioFrameFormat::Signed8, SND_PCM_FORMAT_S8},
+         {PcmAudioFrameFormat::Signed16, SND_PCM_FORMAT_S16_LE},
+         {PcmAudioFrameFormat::Signed24, SND_PCM_FORMAT_S24_LE},
+         {PcmAudioFrameFormat::Signed32, SND_PCM_FORMAT_S32_LE},
 
-            { PcmAudioFrameFormat::Unsigned8, SND_PCM_FORMAT_U8 },
-            { PcmAudioFrameFormat::Unsigned16, SND_PCM_FORMAT_U16_LE },
-            { PcmAudioFrameFormat::Unsigned24, SND_PCM_FORMAT_U24_LE },
-            { PcmAudioFrameFormat::Unsigned32, SND_PCM_FORMAT_U32_LE },
+         {PcmAudioFrameFormat::Unsigned8, SND_PCM_FORMAT_U8},
+         {PcmAudioFrameFormat::Unsigned16, SND_PCM_FORMAT_U16_LE},
+         {PcmAudioFrameFormat::Unsigned24, SND_PCM_FORMAT_U24_LE},
+         {PcmAudioFrameFormat::Unsigned32, SND_PCM_FORMAT_U32_LE},
 
-            { PcmAudioFrameFormat::Float, SND_PCM_FORMAT_FLOAT_LE },
-            { PcmAudioFrameFormat::Double, SND_PCM_FORMAT_FLOAT64_LE }
-        });
+         {PcmAudioFrameFormat::Float, SND_PCM_FORMAT_FLOAT_LE},
+         {PcmAudioFrameFormat::Double, SND_PCM_FORMAT_FLOAT64_LE}});
 
     auto it = Mapping.find(format);
     if (it != Mapping.end())
