@@ -6,7 +6,7 @@
 #include <stdexcept>
 
 #define THROW_ALSA_EXCEPTION(message, errorCode, errorDescription)                                                     \
-    throw adaptone::AlsaException(                                                                                     \
+    throw introlab::AlsaException(                                                                                     \
         __FILENAME__,                                                                                                  \
         __LOGGED_FUNCTION__,                                                                                           \
         __LINE__,                                                                                                      \
@@ -14,7 +14,7 @@
         (errorCode),                                                                                                   \
         (errorDescription))
 
-namespace adaptone
+namespace introlab
 {
     class AlsaException : public std::runtime_error
     {
@@ -29,7 +29,7 @@ namespace adaptone
 
         ~AlsaException() override;
     };
-}  // namespace adaptone
+}
 
 #else
 

@@ -2,7 +2,7 @@
 
 #include "AlsaException.h"
 
-using namespace adaptone;
+using namespace introlab;
 using namespace std;
 
 AlsaException::AlsaException(

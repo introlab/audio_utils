@@ -55,7 +55,7 @@ namespace introlab
     private:
         static snd_pcm_format_t convert(PcmAudioFrameFormat format);
     };
-}  // namespace introlab
+}
 
 #else
 
