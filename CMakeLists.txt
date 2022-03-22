@@ -15,11 +15,11 @@ project(audio_utils)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
-  std_msgs
-  message_generation
-)
+        roscpp
+        rospy
+        std_msgs
+        message_generation
+        )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -56,8 +56,8 @@ catkin_python_setup()
 
 ## Generate messages in the 'msg' folder
 add_message_files(
-  FILES
-  AudioFrame.msg
+        FILES
+        AudioFrame.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -76,8 +76,8 @@ add_message_files(
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
-  DEPENDENCIES
-  std_msgs
+        DEPENDENCIES
+        std_msgs
 )
 
 ################################################
@@ -110,10 +110,10 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES audio_utils
-  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
-#  DEPENDS system_lib
+        #  INCLUDE_DIRS include
+        #  LIBRARIES audio_utils
+        CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
+        #  DEPENDS system_lib
 )
 
 ###########
@@ -123,13 +123,13 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
-  ${catkin_INCLUDE_DIRS}
-  src/MusicBeatDetector/MusicBeatDetector/include
-  src/MusicBeatDetector/Utils/include
-  src/MusicBeatDetector/3rdParty/fftw/build/include
-  src/MusicBeatDetector/3rdParty/armadillo-code/include
-  src/MusicBeatDetector/3rdParty/OpenBLAS
+        # include
+        ${catkin_INCLUDE_DIRS}
+        src/MusicBeatDetector/MusicBeatDetector/include
+        src/MusicBeatDetector/Utils/include
+        src/MusicBeatDetector/3rdParty/fftw/build/include
+        src/MusicBeatDetector/3rdParty/armadillo-code/include
+        src/MusicBeatDetector/3rdParty/OpenBLAS
 )
 
 ## Declare a C++ library
@@ -162,21 +162,21 @@ add_dependencies(alsa_capture_node ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(beat_detector_node
-  ${catkin_LIBRARIES}
-  MusicBeatDetector
-)
+        ${catkin_LIBRARIES}
+        MusicBeatDetector
+        )
 
 target_link_libraries(alsa_capture_node
-  ${catkin_LIBRARIES}
-  MusicBeatDetector
-  asound
-)
+        ${catkin_LIBRARIES}
+        MusicBeatDetector
+        asound
+        )
 
 target_link_libraries(alsa_playback_node
-  ${catkin_LIBRARIES}
-  MusicBeatDetector
-  asound
-)
+        ${catkin_LIBRARIES}
+        MusicBeatDetector
+        asound
+        )
 
 #############
 ## Install ##
@@ -188,12 +188,12 @@ target_link_libraries(alsa_playback_node
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-  scripts/format_conversion_node.py
-  scripts/raw_file_writer_node.py
-  scripts/resampling_node.py
-  scripts/split_channel_node.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+        scripts/format_conversion_node.py
+        scripts/raw_file_writer_node.py
+        scripts/resampling_node.py
+        scripts/split_channel_node.py
+        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        )
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html

@@ -5,9 +5,9 @@
 
 #include <ros/ros.h>
 
-#include <memory>
-#include <chrono>
 #include <atomic>
+#include <chrono>
+#include <memory>
 
 using namespace introlab;
 using namespace std;
@@ -36,11 +36,11 @@ class AlsaPlaybackNode
     ros::Subscriber m_audioSub;
 
 public:
-    AlsaPlaybackNode() :
-        m_privateNodeHandle("~"),
-        m_pendingFrameWriteSemaphore(1),
-        m_pendingFrameReadSemaphore(0),
-        m_lastAudioFrameTime(chrono::system_clock::now())
+    AlsaPlaybackNode()
+        : m_privateNodeHandle("~"),
+          m_pendingFrameWriteSemaphore(1),
+          m_pendingFrameReadSemaphore(0),
+          m_lastAudioFrameTime(chrono::system_clock::now())
     {
         m_privateNodeHandle.getParam("device", m_device);
         m_privateNodeHandle.getParam("format", m_formatString);
@@ -58,8 +58,14 @@ public:
 
         m_frameDuration = chrono::milliseconds(1000 * m_frameSampleCount / m_samplingFrequency);
 
-        m_playbackDevice = make_unique<AlsaPcmDevice>(m_device, AlsaPcmDevice::Stream::Playback,
-            m_format, m_channelCount, m_frameSampleCount, m_samplingFrequency, latencyUs);
+        m_playbackDevice = make_unique<AlsaPcmDevice>(
+            m_device,
+            AlsaPcmDevice::Stream::Playback,
+            m_format,
+            m_channelCount,
+            m_frameSampleCount,
+            m_samplingFrequency,
+            latencyUs);
         m_emptyFrame = make_unique<PcmAudioFrame>(m_format, m_channelCount, m_frameSampleCount);
         m_emptyFrame->clear();
 
@@ -68,14 +74,16 @@ public:
 
     void audioCallback(const audio_utils::AudioFramePtr& msg)
     {
-        if (msg->format != m_formatString ||
-            msg->channel_count != m_channelCount ||
-            msg->sampling_frequency != m_samplingFrequency ||
-            msg->frame_sample_count != m_frameSampleCount)
+        if (msg->format != m_formatString || msg->channel_count != m_channelCount ||
+            msg->sampling_frequency != m_samplingFrequency || msg->frame_sample_count != m_frameSampleCount)
         {
-            ROS_ERROR("Not supported audio frame (msg->format=%s, msg->channel_count=%d,"
+            ROS_ERROR(
+                "Not supported audio frame (msg->format=%s, msg->channel_count=%d,"
                 "sampling_frequency=%d, frame_sample_count=%d)",
-                msg->format.c_str(), msg->channel_count, msg->sampling_frequency, msg->frame_sample_count);
+                msg->format.c_str(),
+                msg->channel_count,
+                msg->sampling_frequency,
+                msg->frame_sample_count);
             return;
         }
 
@@ -115,7 +123,7 @@ public:
     }
 };
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     ros::init(argc, argv, "alsa_playback_node");
 

@@ -4,7 +4,6 @@
 
 #include <ros/ros.h>
 
-
 using namespace introlab;
 using namespace std;
 
@@ -28,7 +27,7 @@ void mergeChannels(const PcmAudioFrame& pcmInput, PcmAudioFrame& pcmOutput, floa
     pcmOutput = PcmAudioFrame(output, pcmInput.format());
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     ros::init(argc, argv, "alsa_capture_node");
 
@@ -57,7 +56,6 @@ int main(int argc, char **argv)
     privateNodeHandle.getParam("frame_sample_count", frameSampleCount);
     privateNodeHandle.getParam("latency_us", latencyUs);
 
-
     privateNodeHandle.getParam("merge", merge);
     privateNodeHandle.getParam("merge_gain", merge_gain);
 
@@ -69,23 +67,31 @@ int main(int argc, char **argv)
 
     try
     {
-        AlsaPcmDevice captureDevice(device, AlsaPcmDevice::Stream::Capture, format, channelCount, frameSampleCount, samplingFrequency, latencyUs);
+        AlsaPcmDevice captureDevice(
+            device,
+            AlsaPcmDevice::Stream::Capture,
+            format,
+            channelCount,
+            frameSampleCount,
+            samplingFrequency,
+            latencyUs);
         PcmAudioFrame manyChannelFrame(format, channelCount, frameSampleCount);
         PcmAudioFrame oneChannelFrame(format, 1, frameSampleCount);
 
-
-        while(ros::ok())
+        while (ros::ok())
         {
             captureDevice.read(manyChannelFrame);
 
             if (merge)
             {
                 mergeChannels(manyChannelFrame, oneChannelFrame, merge_gain);
-                audioFrameMsg.data = vector<uint8_t>(oneChannelFrame.data(), oneChannelFrame.data() + oneChannelFrame.size());
+                audioFrameMsg.data =
+                    vector<uint8_t>(oneChannelFrame.data(), oneChannelFrame.data() + oneChannelFrame.size());
             }
             else
             {
-                audioFrameMsg.data = vector<uint8_t>(manyChannelFrame.data(), manyChannelFrame.data() + manyChannelFrame.size());
+                audioFrameMsg.data =
+                    vector<uint8_t>(manyChannelFrame.data(), manyChannelFrame.data() + manyChannelFrame.size());
             }
 
             audioPub.publish(audioFrameMsg);

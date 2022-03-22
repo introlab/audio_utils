@@ -1,6 +1,6 @@
 #include <ros/ros.h>
-#include <std_msgs/Float32.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/Float32.h>
 
 #include <MusicBeatDetector/MusicBeatDetector.h>
 
@@ -32,8 +32,7 @@ class BeatDetectorNode
     unique_ptr<MusicBeatDetector> m_musicBeatDetector;
 
 public:
-    BeatDetectorNode() :
-        m_privateNodeHandle("~")
+    BeatDetectorNode() : m_privateNodeHandle("~")
     {
         int samplingFrequency;
         int frameSampleCount;
@@ -56,7 +55,8 @@ public:
         m_samplingFrequency = static_cast<size_t>(samplingFrequency);
         m_frameSampleCount = static_cast<size_t>(frameSampleCount);
 
-        m_musicBeatDetector = make_unique<MusicBeatDetector>(m_samplingFrequency,
+        m_musicBeatDetector = make_unique<MusicBeatDetector>(
+            m_samplingFrequency,
             m_frameSampleCount,
             static_cast<size_t>(ossFttWindowSize),
             static_cast<size_t>(fluxHammingSize),
@@ -72,12 +72,15 @@ public:
     }
     void audioCallback(const audio_utils::AudioFramePtr& msg)
     {
-        if (msg->channel_count != SupportedChannelCount ||
-            msg->sampling_frequency != m_samplingFrequency ||
+        if (msg->channel_count != SupportedChannelCount || msg->sampling_frequency != m_samplingFrequency ||
             (msg->frame_sample_count % m_frameSampleCount) != 0)
         {
-            ROS_ERROR("Not supported audio frame (msg->channel_count=%d, sampling_frequency=%d, frame_sample_count=%d)",
-                msg->channel_count, msg->sampling_frequency, msg->frame_sample_count);
+            ROS_ERROR(
+                "Not supported audio frame (msg->channel_count=%d, "
+                "sampling_frequency=%d, frame_sample_count=%d)",
+                msg->channel_count,
+                msg->sampling_frequency,
+                msg->frame_sample_count);
             return;
         }
 
@@ -95,13 +98,10 @@ public:
         m_beatPub.publish(m_beatMsg);
     }
 
-    void run()
-    {
-        ros::spin();
-    }
+    void run() { ros::spin(); }
 };
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     ros::init(argc, argv, "beat_detector_node");
 

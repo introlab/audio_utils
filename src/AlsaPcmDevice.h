@@ -3,8 +3,8 @@
 
 #if defined(__unix__) || defined(__linux__)
 
-#include <Utils/Data/PcmAudioFrame.h>
 #include <Utils/ClassMacro.h>
+#include <Utils/Data/PcmAudioFrame.h>
 
 #include <alsa/asoundlib.h>
 
@@ -26,10 +26,7 @@ namespace introlab
         class PcmDeleter
         {
         public:
-            void operator()(snd_pcm_t* handle)
-            {
-                snd_pcm_close(handle);
-            }
+            void operator()(snd_pcm_t* handle) { snd_pcm_close(handle); }
         };
 
         PcmAudioFrameFormat m_format;
@@ -38,7 +35,8 @@ namespace introlab
         std::unique_ptr<snd_pcm_t, PcmDeleter> m_pcmHandle;
 
     public:
-        AlsaPcmDevice(const std::string& device,
+        AlsaPcmDevice(
+            const std::string& device,
             Stream stream,
             PcmAudioFrameFormat format,
             std::size_t channelCount,
