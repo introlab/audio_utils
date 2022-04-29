@@ -1,7 +1,9 @@
-#ifndef ALSA_PCM_DEVICE_H
-#define ALSA_PCM_DEVICE_H
+#ifndef PCM_DEVICES_ALSA_PCM_DEVICE_H
+#define PCM_DEVICES_ALSA_PCM_DEVICE_H
 
 #if defined(__unix__) || defined(__linux__)
+
+#include "PcmDevice.h"
 
 #include <Utils/ClassMacro.h>
 #include <Utils/Data/PcmAudioFrame.h>
@@ -13,46 +15,36 @@
 
 namespace introlab
 {
-    class AlsaPcmDevice
+    class AlsaPcmDevice : public PcmDevice
     {
-    public:
-        enum class Stream
-        {
-            Playback = SND_PCM_STREAM_PLAYBACK,
-            Capture = SND_PCM_STREAM_CAPTURE
-        };
-
-    private:
         class PcmDeleter
         {
         public:
             void operator()(snd_pcm_t* handle) { snd_pcm_close(handle); }
         };
 
-        PcmAudioFrameFormat m_format;
-        std::size_t m_channelCount;
-        std::size_t m_frameSampleCount;
         std::unique_ptr<snd_pcm_t, PcmDeleter> m_pcmHandle;
 
     public:
         AlsaPcmDevice(
             const std::string& device,
-            Stream stream,
+            PcmDevice::Stream stream,
             PcmAudioFrameFormat format,
             std::size_t channelCount,
             std::size_t frameSampleCount,
             std::size_t sampleFrequency,
             unsigned int latencyUs);
-        ~AlsaPcmDevice();
+        ~AlsaPcmDevice() override;
 
         DECLARE_NOT_COPYABLE(AlsaPcmDevice);
         DECLARE_NOT_MOVABLE(AlsaPcmDevice);
 
-        bool read(PcmAudioFrame& frame);
-        void write(const PcmAudioFrame& frame);
-        void wait();
+        bool read(PcmAudioFrame& frame) override;
+        void write(const PcmAudioFrame& frame) override;
+        void wait() override;
 
     private:
+        static snd_pcm_stream_t convert(PcmDevice::Stream stream);
         static snd_pcm_format_t convert(PcmAudioFrameFormat format);
     };
 }
