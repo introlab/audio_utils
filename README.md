@@ -36,7 +36,7 @@ git submodule update --init --recursive
 
 ## `capture_node`
 
-This node captures the sound from an ALSA device and publishes it to a topic.
+This node captures the sound from an ALSA or PulseAudio device and publishes it to a topic.
 
 ### Parameters
 
