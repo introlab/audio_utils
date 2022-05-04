@@ -146,8 +146,23 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(beat_detector_node src/beat_detector_node.cpp)
-add_executable(alsa_capture_node src/alsa_capture_node.cpp src/AlsaException.cpp src/AlsaPcmDevice.cpp)
-add_executable(alsa_playback_node src/alsa_playback_node.cpp src/AlsaException.cpp src/AlsaPcmDevice.cpp src/Semaphore.cpp)
+add_executable(capture_node
+        src/capture_node.cpp
+        src/PcmDevices/PcmDevice.cpp
+        src/PcmDevices/AlsaPcmDevice.cpp
+        src/PcmDevices/PulseAudioPcmDevice.cpp
+        src/Utils/AlsaException.cpp
+        src/Utils/PulseAudioException.cpp
+)
+add_executable(playback_node
+        src/playback_node.cpp
+        src/PcmDevices/PcmDevice.cpp
+        src/PcmDevices/AlsaPcmDevice.cpp
+        src/PcmDevices/PulseAudioPcmDevice.cpp
+        src/Utils/AlsaException.cpp
+        src/Utils/PulseAudioException.cpp
+        src/Utils/Semaphore.cpp
+)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -158,25 +173,30 @@ add_executable(alsa_playback_node src/alsa_playback_node.cpp src/AlsaException.c
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 add_dependencies(beat_detector_node ${catkin_EXPORTED_TARGETS})
-add_dependencies(alsa_capture_node ${catkin_EXPORTED_TARGETS})
+add_dependencies(capture_node ${catkin_EXPORTED_TARGETS})
+add_dependencies(playback_node ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(beat_detector_node
         ${catkin_LIBRARIES}
         MusicBeatDetector
-        )
+)
 
-target_link_libraries(alsa_capture_node
+target_link_libraries(capture_node
         ${catkin_LIBRARIES}
         MusicBeatDetector
         asound
-        )
+        pulse-simple
+        pulse
+)
 
-target_link_libraries(alsa_playback_node
+target_link_libraries(playback_node
         ${catkin_LIBRARIES}
         MusicBeatDetector
         asound
-        )
+        pulse-simple
+        pulse
+)
 
 #############
 ## Install ##
@@ -193,7 +213,7 @@ catkin_install_python(PROGRAMS
         scripts/resampling_node.py
         scripts/split_channel_node.py
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-        )
+)
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html

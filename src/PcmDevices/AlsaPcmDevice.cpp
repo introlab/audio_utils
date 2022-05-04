@@ -2,9 +2,8 @@
 
 #include "AlsaPcmDevice.h"
 
-#include "AlsaException.h"
+#include "../Utils/AlsaException.h"
 
-#include <Utils/Exception/InvalidValueException.h>
 #include <Utils/Exception/NotSupportedException.h>
 #include <map>
 
@@ -19,21 +18,19 @@ public:
 
 AlsaPcmDevice::AlsaPcmDevice(
     const string& device,
-    AlsaPcmDevice::Stream stream,
+    PcmDevice::Stream stream,
     PcmAudioFrameFormat format,
     size_t channelCount,
     size_t frameSampleCount,
     size_t sampleFrequency,
     unsigned int latencyUs)
-    : m_format(format),
-      m_channelCount(channelCount),
-      m_frameSampleCount(frameSampleCount)
+    : PcmDevice(format, channelCount, frameSampleCount)
 {
     int err;
     snd_pcm_t* pcmHandlePointer;
     snd_pcm_hw_params_t* paramsPointer;
 
-    if ((err = snd_pcm_open(&pcmHandlePointer, device.c_str(), static_cast<snd_pcm_stream_t>(stream), 0)) < 0)
+    if ((err = snd_pcm_open(&pcmHandlePointer, device.c_str(), convert(stream), 0)) < 0)
     {
         THROW_ALSA_EXCEPTION("Cannot open audio device: " + device, err, snd_strerror(err));
     }
@@ -100,11 +97,7 @@ AlsaPcmDevice::~AlsaPcmDevice() {}
 
 bool AlsaPcmDevice::read(PcmAudioFrame& frame)
 {
-    if (frame.format() != m_format || frame.channelCount() != m_channelCount ||
-        frame.sampleCount() != m_frameSampleCount)
-    {
-        THROW_INVALID_VALUE_EXCEPTION("format, channelCount, sampleCount", "");
-    }
+    PcmDevice::read(frame);
 
     snd_pcm_uframes_t periodSize = static_cast<snd_pcm_uframes_t>(m_frameSampleCount);
     int err = snd_pcm_readi(m_pcmHandle.get(), frame.data(), periodSize);
@@ -123,11 +116,7 @@ bool AlsaPcmDevice::read(PcmAudioFrame& frame)
 
 void AlsaPcmDevice::write(const PcmAudioFrame& frame)
 {
-    if (frame.format() != m_format || frame.channelCount() != m_channelCount ||
-        frame.sampleCount() != m_frameSampleCount)
-    {
-        THROW_INVALID_VALUE_EXCEPTION("format, channelCount, sampleCount", "");
-    }
+    PcmDevice::write(frame);
 
     snd_pcm_uframes_t periodSize = static_cast<snd_pcm_uframes_t>(m_frameSampleCount);
     int err = snd_pcm_writei(m_pcmHandle.get(), frame.data(), periodSize);
@@ -157,9 +146,22 @@ void AlsaPcmDevice::wait()
     }
 }
 
+snd_pcm_stream_t AlsaPcmDevice::convert(PcmDevice::Stream stream)
+{
+    switch (stream)
+    {
+        case PcmDevice::Stream::Playback:
+            return SND_PCM_STREAM_PLAYBACK;
+        case PcmDevice::Stream::Capture:
+            return SND_PCM_STREAM_CAPTURE;
+    }
+
+    THROW_NOT_SUPPORTED_EXCEPTION("Not supported stream");
+}
+
 snd_pcm_format_t AlsaPcmDevice::convert(PcmAudioFrameFormat format)
 {
-    const map<PcmAudioFrameFormat, snd_pcm_format_t> Mapping(
+    static const map<PcmAudioFrameFormat, snd_pcm_format_t> Mapping(
         {{PcmAudioFrameFormat::Signed8, SND_PCM_FORMAT_S8},
          {PcmAudioFrameFormat::Signed16, SND_PCM_FORMAT_S16_LE},
          {PcmAudioFrameFormat::Signed24, SND_PCM_FORMAT_S24_LE},

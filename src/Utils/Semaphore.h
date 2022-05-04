@@ -1,5 +1,5 @@
-#ifndef SEMAPHORE_H
-#define SEMAPHORE_H
+#ifndef UTILS_SEMAPHORE_H
+#define UTILS_SEMAPHORE_H
 
 #include <condition_variable>
 #include <mutex>

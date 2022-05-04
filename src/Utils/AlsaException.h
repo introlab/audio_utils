@@ -1,5 +1,5 @@
-#ifndef ALSA_EXCEPTION_H
-#define ALSA_EXCEPTION_H
+#ifndef UTILS_ALSA_EXCEPTION_H
+#define UTILS_ALSA_EXCEPTION_H
 
 #if defined(__unix__) || defined(__linux__)
 

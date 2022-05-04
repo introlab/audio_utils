@@ -11,7 +11,7 @@ The following subsections explain how to use the library on Ubuntu.
 ### Install Dependencies
 
 ```bash
-sudo apt-get install cmake build-essential gfortran texinfo libasound2-dev
+sudo apt-get install cmake build-essential gfortran texinfo libasound2-dev libpulse-dev
 ```
 
 ### Install Python Dependencies
@@ -34,40 +34,50 @@ git submodule update --init --recursive
 
 # Nodes
 
-## `alsa_capture_node`
+## `capture_node`
 
-This node captures the sound from an ALSA device and publishes it to a topic.
+This node captures the sound from an ALSA or PulseAudio device and publishes it to a topic.
 
 ### Parameters
 
-- `device` (string): The ALSA device to capture (ex: `hw:CARD=1,DEV=0`).
+- `backend` (string): The backend to use (`alsa` or `pulse_audio`).
+- `device` (string): The device to capture (ex: `hw:CARD=1,DEV=0` for ALSA or
+  `alsa_input.usb-IntRoLab_16SoundsUSB_Audio_2.0-00.multichannel-input` for PulseAudio).
 - `format` (string): The audio format (
   see [audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)).
 - `channel_count` (int): The device channel count.
 - `sampling_frequency` (int): The device sampling frequency.
 - `frame_sample_count` (int): The number of samples in each frame.
-- `merge` (bool): Indicate to merge the channels or not.
-- `merge_gain` (double): The gain to apply after the merge.
-- `latency_us` (int): The capture latency in microseconds.
+- `merge` (bool): Indicate to merge the channels or not. The default value is `false`.
+- `gain` (double): The gain to apply. The default value is `1.0`
+- `latency_us` (int): The capture latency in microseconds. This parameter must be set only with the ALSA backend.
+- `channel_map` (Array of string): The PulseAudio channel mapping. If empty or omitted, the default mapping is used.
+  This parameter must be set only with the PulseAudio backend. In launch files, use this syntax :
+  `<rosparam param="channel_map">[]</rosparam>`.
 
 ### Published Topics
 
 - `audio_out` ([audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)) The
   captured sound.
 
-## `alsa_playback_node`
+## `playback_node`
 
-This node captures the sound from a topic and plays it to an ALSA device.
+This node captures the sound from a topic and plays it to an ALSA or PulseAudio device.
 
 ### Parameters
 
-- `device` (string): The ALSA device to capture (ex: `hw:CARD=1,DEV=0`).
+- `backend` (string): The backend to use (`alsa` or `pulse_audio`).
+- `device` (string): The device to capture (ex: `hw:CARD=1,DEV=0` for ALSA or
+  `alsa_input.usb-IntRoLab_16SoundsUSB_Audio_2.0-00.multichannel-input` for PulseAudio).
 - `format` (string): The audio format (
   see [audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)).
 - `channel_count` (int): The device channel count.
 - `sampling_frequency` (int): The device sampling frequency.
 - `frame_sample_count` (int): The number of samples in each frame.
-- `latency_us` (int): The playback latency in microseconds.
+- `latency_us` (int): The capture latency in microseconds. This parameter must be set only with the ALSA backend.
+- `channel_map` (Array of string): The PulseAudio channel mapping. If empty or omitted, the default mapping is used.
+  This parameter must be set only with the PulseAudio backend. In launch files, use this syntax :
+  `<rosparam param="channel_map">[]</rosparam>`.
 
 ### Subscribed Topics
 
