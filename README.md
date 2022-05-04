@@ -62,7 +62,7 @@ This node captures the sound from an ALSA or PulseAudio device and publishes it 
 
 ## `playback_node`
 
-This node captures the sound from a topic and plays it to an ALSA device.
+This node captures the sound from a topic and plays it to an ALSA or PulseAudio device.
 
 ### Parameters
 
