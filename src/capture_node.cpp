@@ -28,7 +28,9 @@ struct CaptureNodeConfiguration
     float gain;
 
     CaptureNodeConfiguration()
-        : channelCount(0),
+        : backend(PcmDevice::Backend::Alsa),
+          format(PcmAudioFrameFormat::Signed8),
+          channelCount(0),
           samplingFrequency(0),
           frameSampleCount(0),
           latencyUs(0),

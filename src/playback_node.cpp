@@ -29,7 +29,15 @@ struct PlaybackNodeConfiguration
 
     vector<string> channelMap;
 
-    PlaybackNodeConfiguration() : channelCount(0), samplingFrequency(0), frameSampleCount(0), latencyUs(0) {}
+    PlaybackNodeConfiguration()
+        : backend(PcmDevice::Backend::Alsa),
+          format(PcmAudioFrameFormat::Signed8),
+          channelCount(0),
+          samplingFrequency(0),
+          frameSampleCount(0),
+          latencyUs(0)
+    {
+    }
 };
 
 class PlaybackNode
