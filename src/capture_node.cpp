@@ -16,7 +16,7 @@ struct CaptureNodeConfiguration
     string backendString;
     string device;
     string formatString;
-    PcmAudioFrameFormat format = PcmAudioFrameFormat::Signed16;
+    PcmAudioFrameFormat format;
     int channelCount;
     int samplingFrequency;
     int frameSampleCount;
