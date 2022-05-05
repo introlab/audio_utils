@@ -11,7 +11,7 @@ The following subsections explain how to use the library on Ubuntu.
 ### Install Dependencies
 
 ```bash
-sudo apt-get install cmake build-essential gfortran texinfo libasound2-dev libpulse-dev
+sudo apt-get install cmake build-essential gfortran texinfo libasound2-dev libpulse-dev libgfortran-*-dev
 ```
 
 ### Install Python Dependencies
