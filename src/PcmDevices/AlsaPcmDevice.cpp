@@ -4,7 +4,7 @@
 
 #include "../Utils/AlsaException.h"
 
-#include <Utils/Exception/NotSupportedException.h>
+#include <MusicBeatDetector/Utils/Exception/NotSupportedException.h>
 #include <map>
 
 using namespace introlab;

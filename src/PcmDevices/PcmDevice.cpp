@@ -2,7 +2,7 @@
 
 #include "PcmDevice.h"
 
-#include <Utils/Exception/InvalidValueException.h>
+#include <MusicBeatDetector/Utils/Exception/InvalidValueException.h>
 
 using namespace introlab;
 using namespace std;

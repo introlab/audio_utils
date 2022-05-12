@@ -3,8 +3,8 @@
 
 #if defined(__unix__) || defined(__linux__)
 
-#include <Utils/ClassMacro.h>
-#include <Utils/Data/PcmAudioFrame.h>
+#include <MusicBeatDetector/Utils/ClassMacro.h>
+#include <MusicBeatDetector/Utils/Data/PcmAudioFrame.h>
 
 namespace introlab
 {

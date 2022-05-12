@@ -4,8 +4,8 @@
 
 #include "../Utils/PulseAudioException.h"
 
-#include <Utils/Exception/InvalidValueException.h>
-#include <Utils/Exception/NotSupportedException.h>
+#include <MusicBeatDetector/Utils/Exception/InvalidValueException.h>
+#include <MusicBeatDetector/Utils/Exception/NotSupportedException.h>
 #include <map>
 
 using namespace introlab;
