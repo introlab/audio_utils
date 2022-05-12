@@ -2,7 +2,7 @@
 #include "PcmDevices/PulseAudioPcmDevice.h"
 #include "Utils/Semaphore.h"
 
-#include <Utils/Exception/InvalidValueException.h>
+#include <MusicBeatDetector/Utils/Exception/InvalidValueException.h>
 
 #include <audio_utils/AudioFrame.h>
 

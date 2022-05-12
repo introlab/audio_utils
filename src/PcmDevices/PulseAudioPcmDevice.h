@@ -5,8 +5,8 @@
 
 #include "PcmDevice.h"
 
-#include <Utils/ClassMacro.h>
-#include <Utils/Data/PcmAudioFrame.h>
+#include <MusicBeatDetector/Utils/ClassMacro.h>
+#include <MusicBeatDetector/Utils/Data/PcmAudioFrame.h>
 
 #include <pulse/simple.h>
 #include <pulse/error.h>
