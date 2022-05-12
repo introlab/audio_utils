@@ -111,7 +111,9 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
         INCLUDE_DIRS src/MusicBeatDetector/MusicBeatDetector/include
-        LIBRARIES MusicBeatDetector
+                src/MusicBeatDetector/3rdParty/armadillo-code/include
+                src/MusicBeatDetector/3rdParty/fftw/build/include
+        LIBRARIES MusicBeatDetector ${openblas_LIBRARY} ${fftw_LIBRARY}
         CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
         #  DEPENDS system_lib
 )
