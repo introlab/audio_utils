@@ -122,6 +122,7 @@ void run(unique_ptr<PcmDevice> captureDevice, const CaptureNodeConfiguration& co
     audioFrameMsg.channel_count = configuration.merge ? 1 : configuration.channelCount;
     audioFrameMsg.sampling_frequency = configuration.samplingFrequency;
     audioFrameMsg.frame_sample_count = configuration.frameSampleCount;
+    audioFrameMsg.data.resize(configuration.merge ? oneChannelPcmFrame.size() : manyChannelPcmFrame.size());
 
     while (ros::ok())
     {
@@ -135,14 +136,12 @@ void run(unique_ptr<PcmDevice> captureDevice, const CaptureNodeConfiguration& co
                 manyChannelFrame,
                 oneChannelFrame,
                 configuration.gain);
-            audioFrameMsg.data =
-                vector<uint8_t>(oneChannelPcmFrame.data(), oneChannelPcmFrame.data() + oneChannelPcmFrame.size());
+            memcpy(audioFrameMsg.data.data(), oneChannelPcmFrame.data(), audioFrameMsg.data.size());
         }
         else
         {
             applyGain(manyChannelPcmFrame, manyChannelFrame, configuration.gain);
-            audioFrameMsg.data =
-                vector<uint8_t>(manyChannelPcmFrame.data(), manyChannelPcmFrame.data() + manyChannelPcmFrame.size());
+            memcpy(audioFrameMsg.data.data(), manyChannelPcmFrame.data(), audioFrameMsg.data.size());
         }
 
         audioPub.publish(audioFrameMsg);
