@@ -89,6 +89,7 @@ class Resampler:
             )
         ]
 
+        self._audio_frame_msg.header = frame.header
         self._audio_frame_msg.data = convert_numpy_frames_to_audio_data(
             self._output_frame_converter.frame_info.format_information,
             output_frames

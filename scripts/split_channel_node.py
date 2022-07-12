@@ -27,17 +27,17 @@ class SplitChannelNode:
             return
 
         frames = convert_audio_data_to_numpy_frames(self._input_format_information, msg.channel_count, msg.data)
-        
+
+        audio_frame_msg = AudioFrame()
+        audio_frame_msg.header = msg.header
+        audio_frame_msg.format = self._output_format
+        audio_frame_msg.channel_count = 1
+        audio_frame_msg.sampling_frequency = msg.sampling_frequency
+        audio_frame_msg.frame_sample_count = msg.frame_sample_count
+
         for i in range(len(frames)):
             data = convert_numpy_frames_to_audio_data(self._output_format_information, [frames[i]])
-
-            audio_frame_msg = AudioFrame()
-            audio_frame_msg.format = self._output_format
-            audio_frame_msg.channel_count = 1
-            audio_frame_msg.sampling_frequency = msg.sampling_frequency
-            audio_frame_msg.frame_sample_count = msg.frame_sample_count
             audio_frame_msg.data = data
-
             self._audio_pubs[i].publish(audio_frame_msg)
 
     def run(self):

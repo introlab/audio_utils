@@ -127,6 +127,7 @@ void run(unique_ptr<PcmDevice> captureDevice, const CaptureNodeConfiguration& co
     while (ros::ok())
     {
         captureDevice->read(manyChannelPcmFrame);
+        audioFrameMsg.header.stamp = ros::Time::now();
 
         if (configuration.merge)
         {
