@@ -30,6 +30,7 @@ class FormatConversionNode:
         frames = convert_audio_data_to_numpy_frames(self._input_format_information, msg.channel_count, msg.data)
         data = convert_numpy_frames_to_audio_data(self._output_format_information, frames)
 
+        self._audio_frame_msg.header = msg.header
         self._audio_frame_msg.format = self._output_format
         self._audio_frame_msg.channel_count = msg.channel_count
         self._audio_frame_msg.sampling_frequency = msg.sampling_frequency
