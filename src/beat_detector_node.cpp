@@ -70,6 +70,7 @@ public:
         m_bpmPub = m_nodeHandle.advertise<std_msgs::Float32>("bpm", 1000);
         m_beatPub = m_nodeHandle.advertise<std_msgs::Bool>("beat", 1000);
     }
+
     void audioCallback(const audio_utils::AudioFramePtr& msg)
     {
         if (msg->channel_count != SupportedChannelCount || msg->sampling_frequency != m_samplingFrequency ||
