@@ -49,7 +49,7 @@ This node captures the sound from an ALSA or PulseAudio device and publishes it 
 - `sampling_frequency` (int): The device sampling frequency.
 - `frame_sample_count` (int): The number of samples in each frame.
 - `merge` (bool): Indicate to merge the channels or not. The default value is `false`.
-- `gain` (double): The gain to apply. The default value is `1.0`
+- `gain` (double): The gain to apply. The default value is `1.0`.
 - `latency_us` (int): The capture latency in microseconds. This parameter must be set only with the ALSA backend.
 - `channel_map` (Array of string): The PulseAudio channel mapping. If empty or omitted, the default mapping is used.
   This parameter must be set only with the PulseAudio backend. In launch files, use this syntax :
@@ -88,11 +88,23 @@ This node captures the sound from a topic and plays it to an ALSA or PulseAudio 
 
 This node estimates the song tempo and detects if the beat is in the current frame.
 
+### Parameters
+
+- `sampling_frequency` (int): The device sampling frequency. The default value is `44100`.
+- `frame_sample_count` (int): The number of samples in each analysed frame. It must be a multiple of `oss_fft_window_size`.
+  The default value is `128`.
+- `oss_fft_window_size` (int): The onset strength signal window size. It must be greater than or equal to `frame_sample_count`.
+  The default value is `1024`.
+- `flux_hamming_size` (int): The flux hamming window size to calculate the onset strength signal. The default value is `15`.
+- `oss_bpm_window_size` (int): The onset strength signal window size to calculate the BPM value. The default value is `1024`.
+- `min_bpm` (double): The minimum valid BPM value. The default value is `50`.
+- `max_bpm` (double): The maximum valid BPM value. The default value is `180`.
+- `bpm_candidate_count` (int): The number of cross-correlations to perform to find the best BPM. The default value is `10`.
+
 ### Subscribed Topics
 
 - `audio_in` ([audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)) The sound
-  to analyze. The channel count must be 1, the sampling frequency must be 44100 Hz and the frame sample count must be
-    256.
+  to analyze. The channel count must be 1.
 
 ### Published Topics
 
