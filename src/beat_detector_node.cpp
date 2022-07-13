@@ -36,7 +36,7 @@ public:
     {
         int samplingFrequency;
         int frameSampleCount;
-        int ossFttWindowSize;
+        int ossFftWindowSize;
         int fluxHammingSize;
         int ossBpmWindowSize;
         float minBpm;
@@ -45,7 +45,7 @@ public:
 
         m_privateNodeHandle.param<int>("sampling_frequency", samplingFrequency, 44100);
         m_privateNodeHandle.param<int>("frame_sample_count", frameSampleCount, 128);
-        m_privateNodeHandle.param<int>("oss_ftt_window_size", ossFttWindowSize, 1024);
+        m_privateNodeHandle.param<int>("oss_fft_window_size", ossFftWindowSize, 1024);
         m_privateNodeHandle.param<int>("flux_hamming_size", fluxHammingSize, 15);
         m_privateNodeHandle.param<int>("oss_bpm_window_size", ossBpmWindowSize, 1024);
         m_privateNodeHandle.param<float>("min_bpm", minBpm, 50);
@@ -58,7 +58,7 @@ public:
         m_musicBeatDetector = make_unique<MusicBeatDetector>(
             m_samplingFrequency,
             m_frameSampleCount,
-            static_cast<size_t>(ossFttWindowSize),
+            static_cast<size_t>(ossFftWindowSize),
             static_cast<size_t>(fluxHammingSize),
             static_cast<size_t>(ossBpmWindowSize),
             minBpm,
