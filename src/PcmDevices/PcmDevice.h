@@ -35,7 +35,7 @@ namespace introlab
         DECLARE_NOT_COPYABLE(PcmDevice);
         DECLARE_NOT_MOVABLE(PcmDevice);
 
-        virtual bool read(PcmAudioFrame& frame);
+        virtual void read(PcmAudioFrame& frame);
         virtual void write(const PcmAudioFrame& frame);
         virtual void wait() = 0;
 

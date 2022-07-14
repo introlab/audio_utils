@@ -47,7 +47,7 @@ PulseAudioPcmDevice::PulseAudioPcmDevice(
 
 PulseAudioPcmDevice::~PulseAudioPcmDevice() {}
 
-bool PulseAudioPcmDevice::read(PcmAudioFrame& frame)
+void PulseAudioPcmDevice::read(PcmAudioFrame& frame)
 {
     PcmDevice::read(frame);
 
@@ -56,8 +56,6 @@ bool PulseAudioPcmDevice::read(PcmAudioFrame& frame)
     {
         THROW_PULSE_AUDIO_EXCEPTION("Read from pulse audio failed", error, pa_strerror(error));
     }
-
-    return true;
 }
 
 void PulseAudioPcmDevice::write(const PcmAudioFrame& frame)

@@ -39,7 +39,7 @@ namespace introlab
         DECLARE_NOT_COPYABLE(AlsaPcmDevice);
         DECLARE_NOT_MOVABLE(AlsaPcmDevice);
 
-        bool read(PcmAudioFrame& frame) override;
+        void read(PcmAudioFrame& frame) override;
         void write(const PcmAudioFrame& frame) override;
         void wait() override;
 

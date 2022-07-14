@@ -16,15 +16,13 @@ PcmDevice::PcmDevice(PcmAudioFrameFormat format, size_t channelCount, size_t fra
 
 PcmDevice::~PcmDevice() {}
 
-bool PcmDevice::read(PcmAudioFrame& frame)
+void PcmDevice::read(PcmAudioFrame& frame)
 {
     if (frame.format() != m_format || frame.channelCount() != m_channelCount ||
         frame.sampleCount() != m_frameSampleCount)
     {
         THROW_INVALID_VALUE_EXCEPTION("format, channelCount, sampleCount", "");
     }
-
-    return false;
 }
 
 void PcmDevice::write(const PcmAudioFrame& frame)
