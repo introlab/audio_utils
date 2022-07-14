@@ -40,17 +40,71 @@ struct CaptureNodeConfiguration
     }
 };
 
+class AudioFrameTimestampCalculator
+{
+    uint64_t m_samplingFrequency;
+    uint64_t m_frameSampleCount;
+
+    ros::Duration m_tolerance;
+
+    ros::Time m_startTime;
+    uint64_t m_sampleCount;
+
+public:
+    AudioFrameTimestampCalculator(int samplingFrequency, int frameSampleCount)
+        : m_samplingFrequency(samplingFrequency),
+          m_frameSampleCount(frameSampleCount),
+          m_tolerance(0.5),
+          m_startTime(ros::Time::now()),
+          m_sampleCount(0)
+    {
+    }
+
+    ros::Time next()
+    {
+        m_sampleCount += m_frameSampleCount;
+        ros::Time timestamp = m_startTime + sampleCountToDuration(m_samplingFrequency, m_sampleCount);
+        resetIfOutOfTolerance(timestamp);
+
+        return timestamp;
+    }
+
+private:
+    void resetIfOutOfTolerance(ros::Time& timestamp)
+    {
+        ros::Time now = ros::Time::now();
+        ros::Duration difference = now - timestamp;
+
+        if (difference > m_tolerance || difference < -m_tolerance)
+        {
+            timestamp = now;
+            m_startTime = now;
+            m_sampleCount = 0;
+            ROS_WARN("The audio frame timestamp calculator has been reset.");
+        }
+    }
+
+    static ros::Duration sampleCountToDuration(uint64_t samplingFrequency, uint64_t sampleCount)
+    {
+        constexpr uint64_t NsecsPerSec = 1'000'000'000;
+        uint32_t sec = sampleCount / samplingFrequency;
+        uint32_t nsec = (sampleCount % samplingFrequency) * NsecsPerSec / samplingFrequency;
+
+        return ros::Duration(static_cast<int32_t>(sec), static_cast<int32_t>(nsec));
+    }
+};
+
 void mergeChannels(
     const PcmAudioFrame& pcmInput,
     PcmAudioFrame& pcmOutput,
-    AudioFrame<float>& input,
-    AudioFrame<float>& output,
+    PackedAudioFrame<float>& input,
+    PackedAudioFrame<float>& output,
     float gain)
 {
     pcmInput.copyTo(input);
     if (output.channelCount() != 1 || output.sampleCount() != input.sampleCount())
     {
-        output = AudioFrame<float>(1, input.sampleCount());
+        output = PackedAudioFrame<float>(1, input.sampleCount());
     }
 
     for (size_t sample = 0; sample < input.sampleCount(); sample++)
@@ -68,7 +122,7 @@ void mergeChannels(
     pcmOutput = output;
 }
 
-void applyGain(PcmAudioFrame& pcmFrame, AudioFrame<float>& frame, float gain)
+void applyGain(PcmAudioFrame& pcmFrame, PackedAudioFrame<float>& frame, float gain)
 {
     if (gain == 1.f)
     {
@@ -114,8 +168,8 @@ void run(unique_ptr<PcmDevice> captureDevice, const CaptureNodeConfiguration& co
 {
     PcmAudioFrame manyChannelPcmFrame(configuration.format, configuration.channelCount, configuration.frameSampleCount);
     PcmAudioFrame oneChannelPcmFrame(configuration.format, 1, configuration.frameSampleCount);
-    AudioFrame<float> manyChannelFrame(configuration.channelCount, configuration.frameSampleCount);
-    AudioFrame<float> oneChannelFrame(1, configuration.frameSampleCount);
+    PackedAudioFrame<float> manyChannelFrame(configuration.channelCount, configuration.frameSampleCount);
+    PackedAudioFrame<float> oneChannelFrame(1, configuration.frameSampleCount);
 
     audio_utils::AudioFrame audioFrameMsg;
     audioFrameMsg.format = configuration.formatString;
@@ -124,10 +178,11 @@ void run(unique_ptr<PcmDevice> captureDevice, const CaptureNodeConfiguration& co
     audioFrameMsg.frame_sample_count = configuration.frameSampleCount;
     audioFrameMsg.data.resize(configuration.merge ? oneChannelPcmFrame.size() : manyChannelPcmFrame.size());
 
+    AudioFrameTimestampCalculator timestampCalculator(configuration.samplingFrequency, configuration.frameSampleCount);
+
     while (ros::ok())
     {
         captureDevice->read(manyChannelPcmFrame);
-        audioFrameMsg.header.stamp = ros::Time::now();
 
         if (configuration.merge)
         {
@@ -145,6 +200,7 @@ void run(unique_ptr<PcmDevice> captureDevice, const CaptureNodeConfiguration& co
             memcpy(audioFrameMsg.data.data(), manyChannelPcmFrame.data(), audioFrameMsg.data.size());
         }
 
+        audioFrameMsg.header.stamp = timestampCalculator.next();
         audioPub.publish(audioFrameMsg);
     }
 }

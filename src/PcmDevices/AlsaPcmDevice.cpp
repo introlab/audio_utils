@@ -95,23 +95,27 @@ AlsaPcmDevice::AlsaPcmDevice(
 
 AlsaPcmDevice::~AlsaPcmDevice() {}
 
-bool AlsaPcmDevice::read(PcmAudioFrame& frame)
+void AlsaPcmDevice::read(PcmAudioFrame& frame)
 {
     PcmDevice::read(frame);
 
     snd_pcm_uframes_t periodSize = static_cast<snd_pcm_uframes_t>(m_frameSampleCount);
     int err = snd_pcm_readi(m_pcmHandle.get(), frame.data(), periodSize);
+
     if (err == -EPIPE)
     {
         // EPIPE means overrun
-        snd_pcm_prepare(m_pcmHandle.get());
-        return false;
+        err = snd_pcm_recover(m_pcmHandle.get(), err, 1);
+        if (err >= 0)
+        {
+            err = snd_pcm_readi(m_pcmHandle.get(), frame.data(), periodSize);
+        }
     }
-    else if (err != periodSize)
+
+    if (err != periodSize)
     {
         THROW_ALSA_EXCEPTION("Read from audio interface failed", err, snd_strerror(err));
     }
-    return true;
 }
 
 void AlsaPcmDevice::write(const PcmAudioFrame& frame)

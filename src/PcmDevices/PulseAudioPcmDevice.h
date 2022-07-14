@@ -42,7 +42,7 @@ namespace introlab
         DECLARE_NOT_COPYABLE(PulseAudioPcmDevice);
         DECLARE_NOT_MOVABLE(PulseAudioPcmDevice);
 
-        bool read(PcmAudioFrame& frame) override;
+        void read(PcmAudioFrame& frame) override;
         void write(const PcmAudioFrame& frame) override;
         void wait() override;
 
