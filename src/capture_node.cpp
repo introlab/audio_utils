@@ -80,7 +80,7 @@ private:
             timestamp = now;
             m_startTime = now;
             m_sampleCount = 0;
-            ROS_WARN("The timestamp calculator has been reset.");
+            ROS_WARN("The audio frame timestamp calculator has been reset.");
         }
     }
 
@@ -201,9 +201,6 @@ void run(unique_ptr<PcmDevice> captureDevice, const CaptureNodeConfiguration& co
         }
 
         audioFrameMsg.header.stamp = timestampCalculator.next();
-        auto diff = ros::Time::now() - audioFrameMsg.header.stamp;
-        ROS_WARN_STREAM("Timestamp error: sec=" << diff.toSec());  // TODO remove
-
         audioPub.publish(audioFrameMsg);
     }
 }
