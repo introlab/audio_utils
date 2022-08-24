@@ -73,19 +73,22 @@ public:
 
     void audioCallback(const audio_utils::AudioFramePtr& msg)
     {
+        PcmAudioFrameFormat format = parseFormat(msg->format);
         if (msg->channel_count != SupportedChannelCount || msg->sampling_frequency != m_samplingFrequency ||
-            (msg->frame_sample_count % m_frameSampleCount) != 0)
+            (msg->frame_sample_count % m_frameSampleCount) != 0 ||
+            msg->data.size() != size(format, msg->channel_count, msg->frame_sample_count))
         {
             ROS_ERROR(
                 "Not supported audio frame (msg->channel_count=%d, "
-                "sampling_frequency=%d, frame_sample_count=%d)",
+                "sampling_frequency=%d, frame_sample_count=%d, data_size=%d)",
                 msg->channel_count,
                 msg->sampling_frequency,
-                msg->frame_sample_count);
+                msg->frame_sample_count,
+                msg->data.size());
             return;
         }
 
-        PcmAudioFrame frame(parseFormat(msg->format), msg->channel_count, msg->frame_sample_count, msg->data.data());
+        PcmAudioFrame frame(format, msg->channel_count, msg->frame_sample_count, msg->data.data());
 
         m_beatMsg.data = false;
         for (size_t i = 0; i < msg->frame_sample_count; i += m_frameSampleCount)
