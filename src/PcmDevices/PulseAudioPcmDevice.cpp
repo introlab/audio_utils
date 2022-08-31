@@ -28,7 +28,15 @@ PulseAudioPcmDevice::PulseAudioPcmDevice(
 
     setChannelMap(channelCount, channelMap);
 
+    pa_buffer_attr ba;
+    ba.maxlength = -1;
+    ba.tlength = -1;
+    ba.prebuf = -1;
+    ba.minreq = -1;
+    ba.fragsize = 10 * size(format, channelCount, frameSampleCount);
+    
     int error = 0;
+
     m_paHandle = unique_ptr<pa_simple, PaDeleter>(pa_simple_new(
         nullptr,
         "audio_utils",
@@ -37,7 +45,7 @@ PulseAudioPcmDevice::PulseAudioPcmDevice(
         "audio_utils",
         &ss,
         m_channelMap.get(),
-        nullptr,
+        &ba,
         &error));
     if (!m_paHandle)
     {
