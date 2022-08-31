@@ -33,7 +33,8 @@ PulseAudioPcmDevice::PulseAudioPcmDevice(
     ba.tlength = -1;
     ba.prebuf = -1;
     ba.minreq = -1;
-    ba.fragsize = 10 * size(format, channelCount, frameSampleCount);
+    // Maximum buffer size is 500ms
+    ba.fragsize = max(size_t(1), 500/(1000*frameSampleCount/sampleFrequency)) * size(format, channelCount, frameSampleCount);
     
     int error = 0;
 
