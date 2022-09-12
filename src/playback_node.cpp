@@ -155,6 +155,7 @@ private:
                     m_configuration.channelCount,
                     m_configuration.frameSampleCount,
                     m_configuration.samplingFrequency,
+                    m_configuration.latencyUs,
                     m_configuration.channelMap);
             default:
                 THROW_INVALID_VALUE_EXCEPTION("backend", "");
@@ -207,18 +208,23 @@ int main(int argc, char** argv)
             ROS_ERROR("The parameter frame_sample_count is required.");
             return -1;
         }
+        if (!privateNodeHandle.getParam("latency_us", configuration.latencyUs))
+        {
+            ROS_ERROR("The parameter latency_us is required.");
+            return -1;
+        }
 
-        bool latencyUsFound = privateNodeHandle.getParam("latency_us", configuration.latencyUs);
-        if (latencyUsFound && configuration.backend != PcmDevice::Backend::Alsa)
-        {
-            ROS_ERROR("The parameter latency_us is only supported with the Alsa backend");
-            return -1;
-        }
-        else if (!latencyUsFound && configuration.backend == PcmDevice::Backend::Alsa)
-        {
-            ROS_ERROR("The parameter latency_us must be set with the Alsa backend");
-            return -1;
-        }
+        // bool latencyUsFound = privateNodeHandle.getParam("latency_us", configuration.latencyUs);
+        // if (latencyUsFound && configuration.backend != PcmDevice::Backend::Alsa)
+        // {
+        //     ROS_ERROR("The parameter latency_us is only supported with the Alsa backend");
+        //     return -1;
+        // }
+        // else if (!latencyUsFound && configuration.backend == PcmDevice::Backend::Alsa)
+        // {
+        //     ROS_ERROR("The parameter latency_us must be set with the Alsa backend");
+        //     return -1;
+        // }
 
         bool channelMapFound = privateNodeHandle.getParam("channel_map", configuration.channelMap);
         if (channelMapFound && configuration.backend != PcmDevice::Backend::PulseAudio)

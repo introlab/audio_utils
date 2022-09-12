@@ -18,6 +18,7 @@ PulseAudioPcmDevice::PulseAudioPcmDevice(
     size_t channelCount,
     size_t frameSampleCount,
     size_t sampleFrequency,
+    uint64_t latencyUs,
     const vector<string>& channelMap)
     : PcmDevice(format, channelCount, frameSampleCount)
 {
@@ -30,12 +31,12 @@ PulseAudioPcmDevice::PulseAudioPcmDevice(
 
     pa_buffer_attr ba;
     ba.maxlength = -1;
-    ba.tlength = -1;
+
+    ba.tlength = (stream == PcmDevice::Stream::Playback) ? pa_usec_to_bytes(latencyUs, &ss) : -1;
     ba.prebuf = -1;
     ba.minreq = -1;
-    // Maximum buffer size is 450ms
-    ba.fragsize = max(size_t(1), 450/(1000*frameSampleCount/sampleFrequency)) * size(format, channelCount, frameSampleCount);
-    
+    ba.fragsize = (stream == PcmDevice::Stream::Capture) ? pa_usec_to_bytes(latencyUs, &ss) : -1;
+
     int error = 0;
 
     m_paHandle = unique_ptr<pa_simple, PaDeleter>(pa_simple_new(

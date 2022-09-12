@@ -36,6 +36,7 @@ namespace introlab
             std::size_t channelCount,
             std::size_t frameSampleCount,
             std::size_t sampleFrequency,
+            uint64_t latencyUs,
             const std::vector<std::string>& channelMap);
         ~PulseAudioPcmDevice() override;
 

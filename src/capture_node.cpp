@@ -158,6 +158,7 @@ unique_ptr<PcmDevice> createCaptureDevice(const CaptureNodeConfiguration& config
                 configuration.channelCount,
                 configuration.frameSampleCount,
                 configuration.samplingFrequency,
+                configuration.latencyUs,
                 configuration.channelMap);
         default:
             THROW_INVALID_VALUE_EXCEPTION("backend", "");
@@ -254,15 +255,20 @@ int main(int argc, char** argv)
             return -1;
         }
 
-        bool latencyUsFound = privateNodeHandle.getParam("latency_us", configuration.latencyUs);
-        if (latencyUsFound && configuration.backend != PcmDevice::Backend::Alsa)
+        // bool latencyUsFound = privateNodeHandle.getParam("latency_us", configuration.latencyUs);
+        // if (latencyUsFound && configuration.backend != PcmDevice::Backend::Alsa)
+        // {
+        //     ROS_ERROR("The parameter latency_us is only supported with the Alsa backend");
+        //     return -1;
+        // }
+        // else if (!latencyUsFound && configuration.backend == PcmDevice::Backend::Alsa)
+        // {
+        //     ROS_ERROR("The parameter latency_us must be set with the Alsa backend");
+        //     return -1;
+        // }
+        if (!privateNodeHandle.getParam("latency_us", configuration.latencyUs))
         {
-            ROS_ERROR("The parameter latency_us is only supported with the Alsa backend");
-            return -1;
-        }
-        else if (!latencyUsFound && configuration.backend == PcmDevice::Backend::Alsa)
-        {
-            ROS_ERROR("The parameter latency_us must be set with the Alsa backend");
+            ROS_ERROR("The parameter latency_us is required.");
             return -1;
         }
 
