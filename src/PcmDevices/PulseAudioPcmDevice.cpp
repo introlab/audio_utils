@@ -31,7 +31,6 @@ PulseAudioPcmDevice::PulseAudioPcmDevice(
 
     pa_buffer_attr ba;
     ba.maxlength = -1;
-
     ba.tlength = (stream == PcmDevice::Stream::Playback) ? pa_usec_to_bytes(latencyUs, &ss) : -1;
     ba.prebuf = -1;
     ba.minreq = -1;
