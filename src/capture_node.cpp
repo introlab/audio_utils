@@ -254,18 +254,6 @@ int main(int argc, char** argv)
             ROS_ERROR("The parameter frame_sample_count is required.");
             return -1;
         }
-
-        // bool latencyUsFound = privateNodeHandle.getParam("latency_us", configuration.latencyUs);
-        // if (latencyUsFound && configuration.backend != PcmDevice::Backend::Alsa)
-        // {
-        //     ROS_ERROR("The parameter latency_us is only supported with the Alsa backend");
-        //     return -1;
-        // }
-        // else if (!latencyUsFound && configuration.backend == PcmDevice::Backend::Alsa)
-        // {
-        //     ROS_ERROR("The parameter latency_us must be set with the Alsa backend");
-        //     return -1;
-        // }
         if (!privateNodeHandle.getParam("latency_us", configuration.latencyUs))
         {
             ROS_ERROR("The parameter latency_us is required.");
@@ -275,8 +263,7 @@ int main(int argc, char** argv)
         bool channelMapFound = privateNodeHandle.getParam("channel_map", configuration.channelMap);
         if (channelMapFound && configuration.backend != PcmDevice::Backend::PulseAudio)
         {
-            ROS_ERROR("The parameter channel_map is only supported with the PulseAudio backend");
-            return -1;
+            ROS_WARN("The parameter channel_map is only supported with the PulseAudio backend");
         }
 
         configuration.merge = privateNodeHandle.param("merge", false);
@@ -286,7 +273,7 @@ int main(int argc, char** argv)
     }
     catch (const std::exception& e)
     {
-        ROS_ERROR(e.what());
+        ROS_ERROR("%s", e.what());
         return -1;
     }
 
