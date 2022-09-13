@@ -57,7 +57,7 @@ class PlaybackNode
     ros::Subscriber m_audioSub;
 
 public:
-    PlaybackNode(PlaybackNodeConfiguration configuration)
+    explicit PlaybackNode(PlaybackNodeConfiguration configuration)
         : m_configuration(move(configuration)),
           m_pendingFrameWriteSemaphore(1),
           m_pendingFrameReadSemaphore(0),
@@ -85,7 +85,7 @@ public:
         {
             ROS_ERROR(
                 "Not supported audio frame (msg->format=%s, msg->channel_count=%d,"
-                "sampling_frequency=%d, frame_sample_count=%d, data_size=%d)",
+                "sampling_frequency=%d, frame_sample_count=%d, data_size=%ld)",
                 msg->format.c_str(),
                 msg->channel_count,
                 msg->sampling_frequency,
@@ -155,6 +155,7 @@ private:
                     m_configuration.channelCount,
                     m_configuration.frameSampleCount,
                     m_configuration.samplingFrequency,
+                    m_configuration.latencyUs,
                     m_configuration.channelMap);
             default:
                 THROW_INVALID_VALUE_EXCEPTION("backend", "");
@@ -207,24 +208,16 @@ int main(int argc, char** argv)
             ROS_ERROR("The parameter frame_sample_count is required.");
             return -1;
         }
-
-        bool latencyUsFound = privateNodeHandle.getParam("latency_us", configuration.latencyUs);
-        if (latencyUsFound && configuration.backend != PcmDevice::Backend::Alsa)
+        if (!privateNodeHandle.getParam("latency_us", configuration.latencyUs))
         {
-            ROS_ERROR("The parameter latency_us is only supported with the Alsa backend");
-            return -1;
-        }
-        else if (!latencyUsFound && configuration.backend == PcmDevice::Backend::Alsa)
-        {
-            ROS_ERROR("The parameter latency_us must be set with the Alsa backend");
+            ROS_ERROR("The parameter latency_us is required.");
             return -1;
         }
 
         bool channelMapFound = privateNodeHandle.getParam("channel_map", configuration.channelMap);
         if (channelMapFound && configuration.backend != PcmDevice::Backend::PulseAudio)
         {
-            ROS_ERROR("The parameter channel_map is only supported with the PulseAudio backend");
-            return -1;
+            ROS_WARN("The parameter channel_map is only supported with the PulseAudio backend");
         }
 
         PlaybackNode node(configuration);
@@ -232,7 +225,7 @@ int main(int argc, char** argv)
     }
     catch (const std::exception& e)
     {
-        ROS_ERROR(e.what());
+        ROS_ERROR("%s", e.what());
         return -1;
     }
 

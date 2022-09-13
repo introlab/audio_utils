@@ -41,7 +41,7 @@ This node captures the sound from an ALSA or PulseAudio device and publishes it 
 ### Parameters
 
 - `backend` (string): The backend to use (`alsa` or `pulse_audio`).
-- `device` (string): The device to capture (ex: `hw:CARD=1,DEV=0` for ALSA or
+- `device` (string): The device to capture (ex: `hw:CARD=1,DEV=0` or `default` for ALSA, or
   `alsa_input.usb-IntRoLab_16SoundsUSB_Audio_2.0-00.multichannel-input` for PulseAudio).
 - `format` (string): The audio format (
   see [audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)).
@@ -50,7 +50,7 @@ This node captures the sound from an ALSA or PulseAudio device and publishes it 
 - `frame_sample_count` (int): The number of samples in each frame.
 - `merge` (bool): Indicate to merge the channels or not. The default value is `false`.
 - `gain` (double): The gain to apply. The default value is `1.0`.
-- `latency_us` (int): The capture latency in microseconds. This parameter must be set only with the ALSA backend.
+- `latency_us` (int): The capture latency in microseconds.
 - `channel_map` (Array of string): The PulseAudio channel mapping. If empty or omitted, the default mapping is used.
   This parameter must be set only with the PulseAudio backend. In launch files, use this syntax :
   `<rosparam param="channel_map">[]</rosparam>`.
@@ -67,14 +67,14 @@ This node captures the sound from a topic and plays it to an ALSA or PulseAudio 
 ### Parameters
 
 - `backend` (string): The backend to use (`alsa` or `pulse_audio`).
-- `device` (string): The device to capture (ex: `hw:CARD=1,DEV=0` for ALSA or
+- `device` (string): The device to capture (ex: `hw:CARD=1,DEV=0` or `default` for ALSA, or
   `alsa_input.usb-IntRoLab_16SoundsUSB_Audio_2.0-00.multichannel-input` for PulseAudio).
 - `format` (string): The audio format (
   see [audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)).
 - `channel_count` (int): The device channel count.
 - `sampling_frequency` (int): The device sampling frequency.
 - `frame_sample_count` (int): The number of samples in each frame.
-- `latency_us` (int): The capture latency in microseconds. This parameter must be set only with the ALSA backend.
+- `latency_us` (int): The capture latency in microseconds.
 - `channel_map` (Array of string): The PulseAudio channel mapping. If empty or omitted, the default mapping is used.
   This parameter must be set only with the PulseAudio backend. In launch files, use this syntax :
   `<rosparam param="channel_map">[]</rosparam>`.
