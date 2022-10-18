@@ -4,7 +4,6 @@ cmake_minimum_required(VERSION 3.0.2)
 set(CMAKE_CXX_STANDARD 14)
 
 set(MUSIC_BEAT_DETECTOR_ENABLE_TESTS OFF CACHE BOOL "")
-add_subdirectory(src/MusicBeatDetector)
 
 project(audio_utils)
 
@@ -110,13 +109,21 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-        INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/MusicBeatDetector/include
+        INCLUDE_DIRS
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/MusicBeatDetector/include
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/armadillo-code/include
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/fftw/build/include
-        LIBRARIES MusicBeatDetector ${openblas_LIBRARY} ${fftw_LIBRARY}
+        LIBRARIES
+                MusicBeatDetector
+                # Needs to be hardcoded as the variables are not set until the call to add_subdirectory
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/OpenBLAS/libopenblas.a
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/fftw/build/lib/libfftw3f.a
         CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
         #  DEPENDS system_lib
 )
+
+# Needs to be called after catkin_package for the target name MusicBeatDetector to created AFTER (http://wiki.ros.org/catkin/CMakeLists.txt#catkin_package.28.29)
+add_subdirectory(src/MusicBeatDetector)
 
 ###########
 ## Build ##
