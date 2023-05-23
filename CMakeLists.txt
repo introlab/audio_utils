@@ -181,9 +181,9 @@ add_executable(playback_node
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(beat_detector_node ${catkin_EXPORTED_TARGETS})
-add_dependencies(capture_node ${catkin_EXPORTED_TARGETS})
-add_dependencies(playback_node ${catkin_EXPORTED_TARGETS})
+add_dependencies(beat_detector_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(capture_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(playback_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(beat_detector_node

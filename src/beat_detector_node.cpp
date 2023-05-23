@@ -80,7 +80,7 @@ public:
         {
             ROS_ERROR(
                 "Not supported audio frame (msg->channel_count=%d, "
-                "sampling_frequency=%d, frame_sample_count=%d, data_size=%d)",
+                "sampling_frequency=%d, frame_sample_count=%d, data_size=%lu)",
                 msg->channel_count,
                 msg->sampling_frequency,
                 msg->frame_sample_count,
