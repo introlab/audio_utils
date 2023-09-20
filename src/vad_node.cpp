@@ -82,6 +82,7 @@ public:
         m_sessionOptions.SetIntraOpNumThreads(1);
         m_sessionOptions.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_EXTENDED);
         m_sessionOptions.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
+        m_sessionOptions.SetLogSeverityLevel(ORT_LOGGING_LEVEL_ERROR);
 
         string modelPath = ros::package::getPath("audio_utils") + "/models/silero_vad.onnx";
         m_session = make_unique<Ort::Session>(m_env, modelPath.c_str(), m_sessionOptions);
