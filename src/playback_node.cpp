@@ -76,6 +76,20 @@ public:
         m_audioSub = m_nodeHandle.subscribe("audio_in", 100, &PlaybackNode::audioCallback, this);
     }
 
+    void run()
+    {
+        ros::AsyncSpinner spinner(1);
+        spinner.start();
+
+        while (ros::ok())
+        {
+            writeStep();
+        }
+
+        m_pendingFrameWriteSemaphore.release();
+    }
+
+private:
     void audioCallback(const audio_utils::AudioFramePtr& msg)
     {
         if (msg->format != m_configuration.formatString || msg->channel_count != m_configuration.channelCount ||
@@ -100,19 +114,6 @@ public:
         m_pendingFrameReadSemaphore.release();
     }
 
-    void run()
-    {
-        ros::AsyncSpinner spinner(1);
-        spinner.start();
-
-        while (ros::ok())
-        {
-            writeStep();
-        }
-
-        m_pendingFrameWriteSemaphore.release();
-    }
-
     void writeStep()
     {
         m_playbackDevice->wait();
@@ -133,7 +134,6 @@ public:
         }
     }
 
-private:
     unique_ptr<PcmDevice> createPlaybackDevice()
     {
         switch (m_configuration.backend)
