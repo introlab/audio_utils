@@ -103,13 +103,34 @@ This node estimates the song tempo and detects if the beat is in the current fra
 
 ### Subscribed Topics
 
-- `audio_in` ([audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)) The sound
+- `audio_in` ([audio_utils/AudioFrame](msg/AudioFrame.msg)) The sound
   to analyze. The channel count must be 1.
 
 ### Published Topics
 
 - `bpm` (std_msgs/Float32): The tempo in bpm (beats per minute) for each frame.
 - `beat` (std_msgs/Bool): Indicate if the beat is in the current frame.
+
+## `vad_node`
+
+This node performs voice activity detection with [Silero VAD](https://github.com/snakers4/silero-vad).
+The [models](models) folder contains the model trained by [Silero VAD](https://github.com/snakers4/silero-vad). The license of the model is [MIT](models/SILERO_VAD_LICENSE).
+
+### Parameters
+
+- `silence_to_voice_threshold` (double): The threshold to detect voice activity when silence was previously detected.
+- `voice_to_silence_threshold` (double): The threshold to detect silence when voice activity was previously detected.
+It must be lower than `silence_to_voice_threshold`.
+- `min_silence_duration_ms` (double): The minimum silence duration in ms.
+
+### Subscribed Topics
+
+- `audio_in` ([audio_utils/AudioFrame](msg/AudioFrame.msg)) The sound
+  to analyze. The channel count must be 1. The samply frequency must be 16000 Hz. The frame sample count must be a multiple of 512.
+
+### Published Topics
+
+- `voice_activity` ([audio_utils/VoiceActivity](msg/VoiceActivity.msg)) The voice activity detection result.
 
 ## `format_conversion_node.py`
 

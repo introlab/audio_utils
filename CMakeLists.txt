@@ -15,13 +15,39 @@ project(audio_utils)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
         roscpp
+        roslib
         rospy
         std_msgs
         message_generation
         )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+
+# ******* ONNX Runtime dependency *******
+if (EXISTS "/etc/nv_tegra_release")
+    if (NOT EXISTS "/usr/local/lib/libonnxruntime.so")
+	message(FATAL_ERROR "The ONNX Runtime is not installed.")
+    endif()
+    include_directories(/usr/local/include/onnxruntime/core/session)
+    set(ONNXRUNTIME_LIBRARIES "/usr/local/lib/libonnxruntime.so")
+elseif(${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "x86_64")
+    set(ONNXRUNTIME_NAME "onnxruntime-linux-x64-1.15.1")
+elseif(${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "aarch64")
+    set(ONNXRUNTIME_NAME "onnxruntime-linux-aarch64-1.15.1")
+else()
+    message(FATAL_ERROR "The CPU architecture is not supported.")
+endif()
+
+if (ONNXRUNTIME_NAME)
+    if (NOT EXISTS ${CMAKE_BINARY_DIR}/${ONNXRUNTIME_NAME}.tgz)
+        file(DOWNLOAD https://github.com/microsoft/onnxruntime/releases/download/v1.15.1/${ONNXRUNTIME_NAME}.tgz ${CMAKE_BINARY_DIR}/${ONNXRUNTIME_NAME}.tgz SHOW_PROGRESS)
+    endif()
+    if (NOT EXISTS ${CMAKE_BINARY_DIR}/${ONNXRUNTIME_NAME}/VERSION_NUMBER)
+        execute_process(COMMAND tar -xvf ${ONNXRUNTIME_NAME}.tgz WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+    endif()
+    include_directories(${CMAKE_BINARY_DIR}/${ONNXRUNTIME_NAME}/include)
+    set(ONNXRUNTIME_LIBRARIES ${CMAKE_BINARY_DIR}/${ONNXRUNTIME_NAME}/lib/libonnxruntime.so)
+endif()
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -57,6 +83,7 @@ catkin_python_setup()
 add_message_files(
         FILES
         AudioFrame.msg
+        VoiceActivity.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -172,6 +199,9 @@ add_executable(playback_node
         src/Utils/PulseAudioException.cpp
         src/Utils/Semaphore.cpp
 )
+add_executable(vad_node
+        src/vad_node.cpp
+)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -184,6 +214,7 @@ add_executable(playback_node
 add_dependencies(beat_detector_node ${catkin_EXPORTED_TARGETS})
 add_dependencies(capture_node ${catkin_EXPORTED_TARGETS})
 add_dependencies(playback_node ${catkin_EXPORTED_TARGETS})
+add_dependencies(vad_node ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(beat_detector_node
@@ -205,6 +236,12 @@ target_link_libraries(playback_node
         asound
         pulse-simple
         pulse
+)
+
+target_link_libraries(vad_node
+        ${catkin_LIBRARIES}
+        MusicBeatDetector
+        ${ONNXRUNTIME_LIBRARIES}
 )
 
 #############

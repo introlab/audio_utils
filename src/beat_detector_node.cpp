@@ -71,6 +71,9 @@ public:
         m_beatPub = m_nodeHandle.advertise<std_msgs::Bool>("beat", 1000);
     }
 
+    void run() { ros::spin(); }
+
+private:
     void audioCallback(const audio_utils::AudioFramePtr& msg)
     {
         PcmAudioFrameFormat format = parseFormat(msg->format);
@@ -80,7 +83,7 @@ public:
         {
             ROS_ERROR(
                 "Not supported audio frame (msg->channel_count=%d, "
-                "sampling_frequency=%d, frame_sample_count=%d, data_size=%d)",
+                "sampling_frequency=%d, frame_sample_count=%d, data_size=%ld)",
                 msg->channel_count,
                 msg->sampling_frequency,
                 msg->frame_sample_count,
@@ -101,8 +104,6 @@ public:
         m_bpmPub.publish(m_bpmMsg);
         m_beatPub.publish(m_beatMsg);
     }
-
-    void run() { ros::spin(); }
 };
 
 int main(int argc, char** argv)
