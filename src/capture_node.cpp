@@ -3,26 +3,25 @@
 
 #include <MusicBeatDetector/Utils/Exception/InvalidValueException.h>
 
-#include <audio_utils/AudioFrame.h>
+#include <audio_utils/msg/audio_frame.hpp>
 
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 
 using namespace introlab;
-using namespace std;
 
 struct CaptureNodeConfiguration
 {
     PcmDevice::Backend backend;
-    string backendString;
-    string device;
-    string formatString;
+    std::string backendString;
+    std::string device;
+    std::string formatString;
     PcmAudioFrameFormat format;
     int channelCount;
     int samplingFrequency;
     int frameSampleCount;
     int latencyUs;
 
-    vector<string> channelMap;
+    std::vector<std::string> channelMap;
 
     bool merge;
     float gain;
@@ -42,55 +41,61 @@ struct CaptureNodeConfiguration
 
 class AudioFrameTimestampCalculator
 {
+    std::shared_ptr<rclcpp::Node> m_node;
+    rclcpp::Clock m_clock;
+
     uint64_t m_samplingFrequency;
     uint64_t m_frameSampleCount;
 
-    ros::Duration m_tolerance;
+    rclcpp::Duration m_tolerance;
+    rclcpp::Duration m_minusTolerance;
 
-    ros::Time m_startTime;
+    rclcpp::Time m_startTime;
     uint64_t m_sampleCount;
 
 public:
-    AudioFrameTimestampCalculator(int samplingFrequency, int frameSampleCount)
-        : m_samplingFrequency(samplingFrequency),
+    AudioFrameTimestampCalculator(std::shared_ptr<rclcpp::Node> node, int samplingFrequency, int frameSampleCount)
+        : m_node(std::move(node)),
+          m_samplingFrequency(samplingFrequency),
           m_frameSampleCount(frameSampleCount),
           m_tolerance(0.5),
-          m_startTime(ros::Time::now()),
+          m_minusTolerance(-0.5),
+          m_startTime(m_clock.now()),
           m_sampleCount(0)
     {
     }
 
-    ros::Time next()
+    rclcpp::Time next()
     {
         m_sampleCount += m_frameSampleCount;
-        ros::Time timestamp = m_startTime + sampleCountToDuration(m_samplingFrequency, m_sampleCount);
+        rclcpp::Time timestamp = m_startTime + sampleCountToDuration(m_samplingFrequency, m_sampleCount);
         resetIfOutOfTolerance(timestamp);
 
         return timestamp;
     }
 
 private:
-    void resetIfOutOfTolerance(ros::Time& timestamp)
+    void resetIfOutOfTolerance(rclcpp::Time& timestamp)
     {
-        ros::Time now = ros::Time::now();
-        ros::Duration difference = now - timestamp;
+        rclcpp::Time now = m_clock.now();
+        rclcpp::Duration difference = now - timestamp;
 
-        if (difference > m_tolerance || difference < -m_tolerance)
+        if (difference > m_tolerance || difference < m_minusTolerance)
         {
             timestamp = now;
             m_startTime = now;
             m_sampleCount = 0;
-            ROS_WARN("The audio frame timestamp calculator has been reset.");
+            RCLCPP_WARN(m_node->get_logger(), "The audio frame timestamp calculator has been reset.");
         }
     }
 
-    static ros::Duration sampleCountToDuration(uint64_t samplingFrequency, uint64_t sampleCount)
+    static rclcpp::Duration sampleCountToDuration(uint64_t samplingFrequency, uint64_t sampleCount)
     {
         constexpr uint64_t NsecsPerSec = 1'000'000'000;
         uint32_t sec = sampleCount / samplingFrequency;
         uint32_t nsec = (sampleCount % samplingFrequency) * NsecsPerSec / samplingFrequency;
 
-        return ros::Duration(static_cast<int32_t>(sec), static_cast<int32_t>(nsec));
+        return rclcpp::Duration(static_cast<int32_t>(sec), static_cast<int32_t>(nsec));
     }
 };
 
@@ -137,12 +142,12 @@ void applyGain(PcmAudioFrame& pcmFrame, PackedAudioFrame<float>& frame, float ga
     pcmFrame = frame;
 }
 
-unique_ptr<PcmDevice> createCaptureDevice(const CaptureNodeConfiguration& configuration)
+std::unique_ptr<PcmDevice> createCaptureDevice(const CaptureNodeConfiguration& configuration)
 {
     switch (configuration.backend)
     {
         case PcmDevice::Backend::Alsa:
-            return make_unique<AlsaPcmDevice>(
+            return std::make_unique<AlsaPcmDevice>(
                 configuration.device,
                 PcmDevice::Stream::Capture,
                 configuration.format,
@@ -151,7 +156,7 @@ unique_ptr<PcmDevice> createCaptureDevice(const CaptureNodeConfiguration& config
                 configuration.samplingFrequency,
                 configuration.latencyUs);
         case PcmDevice::Backend::PulseAudio:
-            return make_unique<PulseAudioPcmDevice>(
+            return std::make_unique<PulseAudioPcmDevice>(
                 configuration.device,
                 PcmDevice::Stream::Capture,
                 configuration.format,
@@ -165,23 +170,27 @@ unique_ptr<PcmDevice> createCaptureDevice(const CaptureNodeConfiguration& config
     }
 }
 
-void run(unique_ptr<PcmDevice> captureDevice, const CaptureNodeConfiguration& configuration, ros::Publisher& audioPub)
+void run(
+    std::shared_ptr<rclcpp::Node>& node,
+    std::unique_ptr<PcmDevice> captureDevice,
+    const CaptureNodeConfiguration& configuration,
+    rclcpp::Publisher<audio_utils::msg::AudioFrame>::SharedPtr& audioPub)
 {
     PcmAudioFrame manyChannelPcmFrame(configuration.format, configuration.channelCount, configuration.frameSampleCount);
     PcmAudioFrame oneChannelPcmFrame(configuration.format, 1, configuration.frameSampleCount);
     PackedAudioFrame<float> manyChannelFrame(configuration.channelCount, configuration.frameSampleCount);
     PackedAudioFrame<float> oneChannelFrame(1, configuration.frameSampleCount);
 
-    audio_utils::AudioFrame audioFrameMsg;
+    audio_utils::msg::AudioFrame audioFrameMsg;
     audioFrameMsg.format = configuration.formatString;
     audioFrameMsg.channel_count = configuration.merge ? 1 : configuration.channelCount;
     audioFrameMsg.sampling_frequency = configuration.samplingFrequency;
     audioFrameMsg.frame_sample_count = configuration.frameSampleCount;
     audioFrameMsg.data.resize(configuration.merge ? oneChannelPcmFrame.size() : manyChannelPcmFrame.size());
 
-    AudioFrameTimestampCalculator timestampCalculator(configuration.samplingFrequency, configuration.frameSampleCount);
+    AudioFrameTimestampCalculator timestampCalculator(node, configuration.samplingFrequency, configuration.frameSampleCount);
 
-    while (ros::ok())
+    while (rclcpp::ok())
     {
         captureDevice->read(manyChannelPcmFrame);
 
@@ -202,78 +211,47 @@ void run(unique_ptr<PcmDevice> captureDevice, const CaptureNodeConfiguration& co
         }
 
         audioFrameMsg.header.stamp = timestampCalculator.next();
-        audioPub.publish(audioFrameMsg);
+        audioPub->publish(audioFrameMsg);
+
+        rclcpp::spin_some(node);
     }
 }
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "capture_node");
+    rclcpp::init(argc, argv);
 
-    ros::NodeHandle nodeHandle;
-    ros::NodeHandle privateNodeHandle("~");
-
-    ros::Publisher audioPub = nodeHandle.advertise<audio_utils::AudioFrame>("audio_out", 100);
+    auto node = rclcpp::Node::make_shared("capture_node");
+    auto audioPub = node->create_publisher<audio_utils::msg::AudioFrame>("audio_out", 100);
 
     CaptureNodeConfiguration configuration;
-
-    if (!privateNodeHandle.getParam("backend", configuration.backendString))
-    {
-        ROS_ERROR("The parameter backend must be alsa or pulse_audio.");
-        return -1;
-    }
+    configuration.backendString = node->declare_parameter("backend", "alsa");
 
     try
     {
         configuration.backend = PcmDevice::parseBackend(configuration.backendString);
 
-        if (!privateNodeHandle.getParam("device", configuration.device))
-        {
-            ROS_ERROR("The parameter device is required.");
-            return -1;
-        }
-        if (!privateNodeHandle.getParam("format", configuration.formatString))
-        {
-            ROS_ERROR("The parameter format is required.");
-            return -1;
-        }
+        configuration.device = node->declare_parameter("backend", "default");
+        configuration.formatString = node->declare_parameter("format", "signed_16");
         configuration.format = parseFormat(configuration.formatString);
-
-        if (!privateNodeHandle.getParam("channel_count", configuration.channelCount))
+        configuration.channelCount = node->declare_parameter("channel_count", 1);
+        configuration.samplingFrequency = node->declare_parameter("sampling_frequency", 16000);
+        configuration.frameSampleCount = node->declare_parameter("frame_sample_count", 1024);
+        configuration.latencyUs = node->declare_parameter("latency_us", 64000);
+        configuration.channelMap = node->declare_parameter("channel_map", std::vector<std::string>{});
+        if (!configuration.channelMap.empty() && configuration.backend != PcmDevice::Backend::PulseAudio)
         {
-            ROS_ERROR("The parameter channel_count is required.");
-            return -1;
-        }
-        if (!privateNodeHandle.getParam("sampling_frequency", configuration.samplingFrequency))
-        {
-            ROS_ERROR("The parameter sampling_frequency is required.");
-            return -1;
-        }
-        if (!privateNodeHandle.getParam("frame_sample_count", configuration.frameSampleCount))
-        {
-            ROS_ERROR("The parameter frame_sample_count is required.");
-            return -1;
-        }
-        if (!privateNodeHandle.getParam("latency_us", configuration.latencyUs))
-        {
-            ROS_ERROR("The parameter latency_us is required.");
-            return -1;
+            RCLCPP_WARN(node->get_logger(), "The parameter channel_map is only supported with the PulseAudio backend");
         }
 
-        bool channelMapFound = privateNodeHandle.getParam("channel_map", configuration.channelMap);
-        if (channelMapFound && configuration.backend != PcmDevice::Backend::PulseAudio)
-        {
-            ROS_WARN("The parameter channel_map is only supported with the PulseAudio backend");
-        }
+        configuration.merge = node->declare_parameter("merge", false);
+        configuration.gain = node->declare_parameter("gain", 1.f);
 
-        configuration.merge = privateNodeHandle.param("merge", false);
-        configuration.gain = privateNodeHandle.param("gain", 1.f);
-
-        run(createCaptureDevice(configuration), configuration, audioPub);
+        run(node, createCaptureDevice(configuration), configuration, audioPub);
     }
     catch (const std::exception& e)
     {
-        ROS_ERROR("%s", e.what());
+        RCLCPP_ERROR(node->get_logger(), "%s", e.what());
         return -1;
     }
 

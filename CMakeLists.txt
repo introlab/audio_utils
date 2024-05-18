@@ -80,16 +80,17 @@ rosidl_target_interfaces(beat_detector_node ${PROJECT_NAME} "rosidl_typesupport_
 install(TARGETS beat_detector_node DESTINATION lib/${PROJECT_NAME})
 
 
-#add_executable(capture_node src/capture_node.cpp
-#  src/PcmDevices/PcmDevice.cpp
-#  src/PcmDevices/AlsaPcmDevice.cpp
-#  src/PcmDevices/PulseAudioPcmDevice.cpp
-#  src/Utils/AlsaException.cpp
-#  src/Utils/PulseAudioException.cpp
-#)
-#ament_target_dependencies(capture_node rclcpp std_msgs)
-#target_link_libraries(capture_node MusicBeatDetector asound pulse-simple pulse)
-#install(TARGETS capture_node DESTINATION lib/${PROJECT_NAME})
+add_executable(capture_node src/capture_node.cpp
+  src/PcmDevices/PcmDevice.cpp
+  src/PcmDevices/AlsaPcmDevice.cpp
+  src/PcmDevices/PulseAudioPcmDevice.cpp
+  src/Utils/AlsaException.cpp
+  src/Utils/PulseAudioException.cpp
+)
+ament_target_dependencies(capture_node rclcpp std_msgs)
+target_link_libraries(capture_node MusicBeatDetector asound pulse-simple pulse)
+rosidl_target_interfaces(capture_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
+install(TARGETS capture_node DESTINATION lib/${PROJECT_NAME})
 
 
 add_executable(playback_node src/playback_node.cpp
