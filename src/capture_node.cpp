@@ -58,8 +58,8 @@ public:
         : m_node(std::move(node)),
           m_samplingFrequency(samplingFrequency),
           m_frameSampleCount(frameSampleCount),
-          m_tolerance(0.5),
-          m_minusTolerance(-0.5),
+          m_tolerance(std::chrono::milliseconds(500)),
+          m_minusTolerance(std::chrono::milliseconds(-500)),
           m_startTime(m_clock.now()),
           m_sampleCount(0)
     {
@@ -231,7 +231,7 @@ int main(int argc, char** argv)
     {
         configuration.backend = PcmDevice::parseBackend(configuration.backendString);
 
-        configuration.device = node->declare_parameter("backend", "default");
+        configuration.device = node->declare_parameter("device", "default");
         configuration.formatString = node->declare_parameter("format", "signed_16");
         configuration.format = parseFormat(configuration.formatString);
         configuration.channelCount = node->declare_parameter("channel_count", 1);
@@ -254,6 +254,8 @@ int main(int argc, char** argv)
         RCLCPP_ERROR(node->get_logger(), "%s", e.what());
         return -1;
     }
+
+    rclcpp::shutdown();
 
     return 0;
 }

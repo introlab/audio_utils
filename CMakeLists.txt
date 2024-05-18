@@ -52,6 +52,8 @@ if (ONNXRUNTIME_NAME)
     endif()
     include_directories(${CMAKE_BINARY_DIR}/${ONNXRUNTIME_NAME}/include)
     set(ONNXRUNTIME_LIBRARIES ${CMAKE_BINARY_DIR}/${ONNXRUNTIME_NAME}/lib/libonnxruntime.so)
+
+    install(DIRECTORY ${CMAKE_BINARY_DIR}/${ONNXRUNTIME_NAME}/lib/ DESTINATION lib)
 endif()
 
 
@@ -64,11 +66,11 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 add_subdirectory(src/MusicBeatDetector)
 
 include_directories(
-        src/MusicBeatDetector/MusicBeatDetector/include
-        src/MusicBeatDetector/Utils/include
-        src/MusicBeatDetector/3rdParty/fftw/build/include
-        src/MusicBeatDetector/3rdParty/armadillo-code/include
-        src/MusicBeatDetector/3rdParty/OpenBLAS
+  src/MusicBeatDetector/MusicBeatDetector/include
+  src/MusicBeatDetector/Utils/include
+  src/MusicBeatDetector/3rdParty/fftw/build/include
+  src/MusicBeatDetector/3rdParty/armadillo-code/include
+  src/MusicBeatDetector/3rdParty/OpenBLAS
 )
 
 
@@ -112,11 +114,11 @@ ament_target_dependencies(vad_node rclcpp std_msgs ament_index_cpp)
 target_link_libraries(vad_node MusicBeatDetector ${ONNXRUNTIME_LIBRARIES})
 rosidl_target_interfaces(vad_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 install(TARGETS vad_node DESTINATION lib/${PROJECT_NAME})
+install(DIRECTORY models DESTINATION share/${PROJECT_NAME})
 
 
-# TODO fix
 # Python Nodes
-#ament_python_install_package(${PROJECT_NAME})
+ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
   scripts/format_conversion_node.py
@@ -126,19 +128,18 @@ install(PROGRAMS
   DESTINATION lib/${PROJECT_NAME}
 )
 
+# Launch files
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME})
+
 # Exported libs
 ament_export_include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/MusicBeatDetector/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/armadillo-code/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/fftw/build/include
 )
-
-# TODO Fix export
 ament_export_libraries(
   MusicBeatDetector
-  # Needs to be hardcoded as the variables are not set until the call to add_subdirectory
-  #${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/OpenBLAS/libopenblas.a
-  #${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/fftw/build/lib/libfftw3f.a
 )
 
 ament_package()

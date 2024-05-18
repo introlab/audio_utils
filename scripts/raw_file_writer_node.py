@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 
-import numpy as np
-
-import rospy
+import rclpy
+import rclpy.node
 
 from audio_utils.msg import AudioFrame
 
 
-class RawFileWriterNode:
+class RawFileWriterNode(rclpy.node.Node):
     def __init__(self):
-        self._output_path = rospy.get_param('~output_path', '')
+        super().__init__('raw_file_writer_node')
+
+        self._output_path = self.declare_parameter('output_path', '').get_parameter_value().string_value
 
         self._file_descriptor = None
-
-        self._audio_sub = rospy.Subscriber('audio_in', AudioFrame, self._audio_cb, queue_size=10)
+        self._audio_sub = self.create_subscription(AudioFrame, 'audio_in', self._audio_cb, 10)
 
     def _audio_cb(self, msg):
         if self._file_descriptor is None or self._file_descriptor.closed:
@@ -22,17 +22,21 @@ class RawFileWriterNode:
 
     def run(self):
         with open(self._output_path, 'wb') as self._file_descriptor:
-            rospy.spin()
+            rclpy.spin(self)
 
 
 def main():
-    rospy.init_node('raw_file_writer_node')
+    rclpy.init()
+
     raw_file_writer_node = RawFileWriterNode()
     raw_file_writer_node.run()
+
+    raw_file_writer_node.destroy_node()
+    rclpy.shutdown()
 
 
 if __name__ == '__main__':
     try:
         main()
-    except rospy.ROSInterruptException:
+    except KeyboardInterrupt:
         pass

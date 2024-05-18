@@ -47,7 +47,7 @@ public:
           m_lastAudioFrameTime(std::chrono::system_clock::now())
     {
         m_backend = PcmDevice::parseBackend(declare_parameter("backend", "alsa"));
-        m_device = declare_parameter("backend", "default");
+        m_device = declare_parameter("device", "default");
         m_formatString = declare_parameter("format", "signed_16");
         m_format = parseFormat(m_formatString);
         m_channelCount = declare_parameter("channel_count", 1);
@@ -162,14 +162,16 @@ int main(int argc, char** argv)
 
     try
     {
-        PlaybackNode node;
-        node.run();
+        auto node = std::make_shared<PlaybackNode>();
+        node->run();
     }
     catch (const std::exception& e)
     {
         RCLCPP_ERROR(rclcpp::get_logger(NODE_NAME), "%s", e.what());
         return -1;
     }
+
+    rclcpp::shutdown();
 
     return 0;
 }

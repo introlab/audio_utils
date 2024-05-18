@@ -36,8 +36,8 @@ public:
         size_t fluxHammingSize = declare_parameter("flux_hamming_size", 15);
         size_t ossBpmWindowSize = declare_parameter("oss_bpm_window_size", 1024);
         float minBpm = declare_parameter("min_bpm", 50.f);
-        float maxBpm = declare_parameter("min_bpm", 180.f);
-        size_t bpmCandidateCount = declare_parameter("min_bpm", 10);
+        float maxBpm = declare_parameter("max_bpm", 180.f);
+        size_t bpmCandidateCount = declare_parameter("bpm_candidate_count", 10);
 
         m_musicBeatDetector = std::make_unique<MusicBeatDetector>(
             m_samplingFrequency,
@@ -56,6 +56,11 @@ public:
 
         m_bpmPub = create_publisher<std_msgs::msg::Float32>("bpm", 1000);
         m_beatPub = create_publisher<std_msgs::msg::Bool>("beat", 1000);
+    }
+
+    void run()
+    {
+        rclcpp::spin(shared_from_this());
     }
 
 private:
@@ -95,7 +100,8 @@ private:
 int main(int argc, char** argv)
 {
     rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<BeatDetectorNode>());
+    auto node = std::make_shared<BeatDetectorNode>();
+    node->run();
     rclcpp::shutdown();
 
     return 0;
