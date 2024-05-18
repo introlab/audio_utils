@@ -23,6 +23,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 ## System dependencies are found with CMake's conventions
@@ -91,21 +92,22 @@ install(TARGETS beat_detector_node DESTINATION lib/${PROJECT_NAME})
 #install(TARGETS capture_node DESTINATION lib/${PROJECT_NAME})
 
 
-#add_executable(playback_node src/playback_node.cpp
-#  src/PcmDevices/PcmDevice.cpp
-#  src/PcmDevices/AlsaPcmDevice.cpp
-#  src/PcmDevices/PulseAudioPcmDevice.cpp
-#  src/Utils/AlsaException.cpp
-#  src/Utils/PulseAudioException.cpp
-#  src/Utils/Semaphore.cpp
-#)
-#ament_target_dependencies(playback_node rclcpp std_msgs)
-#target_link_libraries(playback_node MusicBeatDetector asound pulse-simple pulse)
-#install(TARGETS playback_node DESTINATION lib/${PROJECT_NAME})
+add_executable(playback_node src/playback_node.cpp
+  src/PcmDevices/PcmDevice.cpp
+  src/PcmDevices/AlsaPcmDevice.cpp
+  src/PcmDevices/PulseAudioPcmDevice.cpp
+  src/Utils/AlsaException.cpp
+  src/Utils/PulseAudioException.cpp
+  src/Utils/Semaphore.cpp
+)
+ament_target_dependencies(playback_node rclcpp std_msgs)
+target_link_libraries(playback_node MusicBeatDetector asound pulse-simple pulse)
+rosidl_target_interfaces(playback_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
+install(TARGETS playback_node DESTINATION lib/${PROJECT_NAME})
 
 
 add_executable(vad_node src/vad_node.cpp)
-ament_target_dependencies(vad_node rclcpp std_msgs)
+ament_target_dependencies(vad_node rclcpp std_msgs ament_index_cpp)
 target_link_libraries(vad_node MusicBeatDetector ${ONNXRUNTIME_LIBRARIES})
 rosidl_target_interfaces(vad_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 install(TARGETS vad_node DESTINATION lib/${PROJECT_NAME})
