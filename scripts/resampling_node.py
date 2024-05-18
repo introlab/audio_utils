@@ -3,7 +3,9 @@
 import numpy as np
 import scipy.signal
 
-import rospy
+import rclpy
+import rclpy.node
+import rclpy.parameter
 
 from audio_utils.msg import AudioFrame
 from audio_utils import get_format_information, convert_audio_data_to_numpy_frames, convert_numpy_frames_to_audio_data
@@ -67,9 +69,11 @@ class OutputFrameConverter(FrameConverter):
 
 
 class Resampler:
-    def __init__(self, input_frame_converter: InputFrameConverter, output_frame_converter: OutputFrameConverter) -> None:
+    def __init__(self, node: rclpy.node.Node, input_frame_converter: InputFrameConverter, output_frame_converter: OutputFrameConverter) -> None:
         self._input_frame_converter: InputFrameConverter = input_frame_converter
         self._output_frame_converter: OutputFrameConverter = output_frame_converter
+
+        self._node = node
 
         self._set_rospy_input_parameters(
             self._input_frame_converter.frame_info)
@@ -152,16 +156,30 @@ class Resampler:
         self._audio_frame_msg = self._create_initialiazed_audio_frame_msg(
             self._output_frame_converter.frame_info)
 
-    @staticmethod
-    def _set_rospy_input_parameters(new_input_info: FrameInfo) -> None:
-        rospy.set_param('~input_format', new_input_info.format)
-        rospy.set_param('~input_sampling_frequency',
-                        new_input_info.sampling_frequency)
-        rospy.set_param('~input_frame_sample_count',
-                        new_input_info.frame_sample_count)
+    def _set_rospy_input_parameters(self, new_input_info: FrameInfo) -> None:
+        self._node.set_parameters([
+            rclpy.parameter.Parameter('input_format', rclpy.Parameter.Type.STRING, new_input_info.format),
+            rclpy.parameter.Parameter('input_sampling_frequency', rclpy.Parameter.Type.INTEGER, new_input_info.sampling_frequency),
+            rclpy.parameter.Parameter('input_frame_sample_count', rclpy.Parameter.Type.INTEGER, new_input_info.frame_sample_count),
+        ])
 
 
 class OnCallbackStrategy(ABC):
+    def register_node(self, node: rclpy.node.Node) -> None:
+        self._node = node
+
+        self._node.declare_parameter('input_format', '')
+        self._node.declare_parameter('input_sampling_frequency', 0)
+        self._node.declare_parameter('input_frame_sample_count', 0)
+        self._node.declare_parameter('channel_count', 1)
+
+        self._node.declare_parameter('output_format', '')
+        self._node.declare_parameter('output_sampling_frequency', 0)
+
+    def _validate_node_registered(self) -> None:
+        if not hasattr(self, '_node'):
+            raise ValueError(f"Node not registered with strategy {self.__class__.__name__}")
+
     @abstractmethod
     def make_initial_input_frame_converter(self) -> InputFrameConverter: ...
 
@@ -171,32 +189,34 @@ class OnCallbackStrategy(ABC):
 
     @abstractmethod
     def audio_cb(self, msg: AudioFrame, resampler: Resampler,
-                 publisher: rospy.Publisher) -> None: ...
+                 publisher: rclpy.node.Publisher) -> None: ...
 
 
 class StaticResamplingOnCallbackStrategy(OnCallbackStrategy):
 
     def make_initial_input_frame_converter(self) -> InputFrameConverter:
+        self._validate_node_registered()
         return InputFrameConverter(
-            format=rospy.get_param('~input_format', ''),
-            sampling_frequency=rospy.get_param('~input_sampling_frequency', 0),
-            frame_sample_count=rospy.get_param('~input_frame_sample_count', 0),
-            channel_count=rospy.get_param('~channel_count', 1),
+            format=self._node.get_parameter('input_format').get_parameter_value().string_value,
+            sampling_frequency=self._node.get_parameter('input_sampling_frequency').get_parameter_value().integer_value,
+            frame_sample_count=self._node.get_parameter('input_frame_sample_count').get_parameter_value().integer_value,
+            channel_count=self._node.get_parameter('channel_count').get_parameter_value().integer_value,
         )
 
     def make_initial_output_frame_converter(self, input_frame_info: FrameInfo) -> OutputFrameConverter:
+        self._validate_node_registered()
         return OutputFrameConverter(
-            format=rospy.get_param('~output_format', ''),
-            sampling_frequency=rospy.get_param(
-                '~output_sampling_frequency', 0),
+            format=self._node.get_parameter('output_format').get_parameter_value().string_value,
+            sampling_frequency=self._node.get_parameter('output_sampling_frequency').get_parameter_value().integer_value,
             input_frame_info=input_frame_info,
         )
 
-    def audio_cb(self, msg: AudioFrame, resampler: Resampler, publisher: rospy.Publisher) -> None:
+    def audio_cb(self, msg: AudioFrame, resampler: Resampler, publisher: rclpy.node.Publisher) -> None:
+        self._validate_node_registered()
         # We don't support changing the input frame info dynamically
         if not resampler.is_same_input_frame_info(FrameInfo.from_audio_frame(msg)):
             input_param = resampler.input_frame_info
-            rospy.logerr(
+            self._node.get_logger().error(
                 f"Invalid frame (msg.format={msg.format}, input_param.format={input_param.format}, "
                 f"msg.channel_count={msg.channel_count}, input_param.channel_count={input_param.channel_count}, "
                 f"msg.sampling_frequency={msg.sampling_frequency}, input_param.sampling_frequency={input_param.sampling_frequency}, "
@@ -208,32 +228,42 @@ class StaticResamplingOnCallbackStrategy(OnCallbackStrategy):
 
 
 class DynamicResamplingOnCallbackStrategy(OnCallbackStrategy):
+    def register_node(self, node: rclpy.node.Node) -> None:
+        super().register_node(node)
+
+        self._node.set_parameters([
+            rclpy.parameter.Parameter('input_format', rclpy.Parameter.Type.STRING, 'signed_16'),
+            rclpy.parameter.Parameter('input_sampling_frequency', rclpy.Parameter.Type.INTEGER, 44100),
+            rclpy.parameter.Parameter('input_frame_sample_count', rclpy.Parameter.Type.INTEGER, 480),
+            rclpy.parameter.Parameter('channel_count', rclpy.Parameter.Type.INTEGER, 1),
+        ])
+
     def make_initial_input_frame_converter(self) -> InputFrameConverter:
+        self._validate_node_registered()
         # Default are valid, they can be set to choose the starting values, or they will adjust when the first frame is received
         return InputFrameConverter(
-            format=rospy.get_param('~input_format', "signed_16"),
-            sampling_frequency=rospy.get_param(
-                '~input_sampling_frequency', 44100),
-            frame_sample_count=rospy.get_param(
-                '~input_frame_sample_count', 480),
-            channel_count=rospy.get_param('~channel_count', 1),
+            format=self._node.get_parameter('input_format').get_parameter_value().string_value,
+            sampling_frequency=self._node.get_parameter('input_sampling_frequency').get_parameter_value().integer_value,
+            frame_sample_count=self._node.get_parameter('input_frame_sample_count').get_parameter_value().integer_value,
+            channel_count=self._node.get_parameter('channel_count').get_parameter_value().integer_value,
         )
 
     def make_initial_output_frame_converter(self, input_frame_info: FrameInfo) -> OutputFrameConverter:
+        self._validate_node_registered()
         return OutputFrameConverter(
-            format=rospy.get_param('~output_format', ''),
-            sampling_frequency=rospy.get_param(
-                '~output_sampling_frequency', 0),
+            format=self._node.get_parameter('output_format').get_parameter_value().string_value,
+            sampling_frequency=self._node.get_parameter('output_sampling_frequency').get_parameter_value().integer_value,
             input_frame_info=input_frame_info,
         )
 
-    def audio_cb(self, msg: AudioFrame, resampler: Resampler, publisher: rospy.Publisher) -> None:
+    def audio_cb(self, msg: AudioFrame, resampler: Resampler, publisher: rclpy.node.Publisher) -> None:
+        self._validate_node_registered()
         # If input frame info has changed
         if not resampler.is_same_input_frame_info(FrameInfo.from_audio_frame(msg)):
             # We don't support changing the channel_count dynamically, it needs to stay the same
             if resampler.input_frame_info.channel_count != msg.channel_count:
                 input_param = resampler.input_frame_info
-                rospy.logerr(
+                self._node.get_logger().error(
                     f"Invalid channel_count: (msg.channel_count={msg.channel_count}, "
                     f"input_param.channel_count={input_param.channel_count}) can't change dynamically")
                 return
@@ -244,52 +274,63 @@ class DynamicResamplingOnCallbackStrategy(OnCallbackStrategy):
         publisher.publish(resampler.resample(msg))
 
 
-class ResamplingNode:
+class ResamplingNode(rclpy.node.Node):
     def __init__(self, resamplingStrategy: OnCallbackStrategy) -> None:
+        super().__init__('resampling_node')
 
         self._resamplingStrategy = resamplingStrategy
+
+        resamplingStrategy.register_node(self)
 
         self._input_info = resamplingStrategy.make_initial_input_frame_converter()
 
         self._output_info = resamplingStrategy.make_initial_output_frame_converter(
             self._input_info.frame_info)
 
-        self._resampler = Resampler(
+        self._resampler = Resampler(self,
             input_frame_converter=self._input_info, output_frame_converter=self._output_info)
 
-        self._audio_pub = rospy.Publisher(
-            'audio_out', AudioFrame, queue_size=100)
-        self._audio_sub = rospy.Subscriber(
-            'audio_in', AudioFrame, self._audio_cb, queue_size=100)
+        self._audio_pub = self.create_publisher(AudioFrame, 'audio_out', 100)
+        self._audio_sub = self.create_subscription(AudioFrame, 'audio_in', self._audio_cb, 100)
 
     def _audio_cb(self, msg: AudioFrame):
         self._resamplingStrategy.audio_cb(
             msg=msg, resampler=self._resampler, publisher=self._audio_pub)
 
     def run(self):
-        rospy.spin()
+        rclpy.spin(self)
 
 
-class ResamplingNodeFactory:
+class ResamplingNodeFactory(rclpy.node.Node):
     @staticmethod
     def create():
-        dynamic_input_resampling = rospy.get_param(
-            '~dynamic_input_resampling', False)
+        node = ResamplingNodeFactory('__resampling_node_factory')
+        dynamic_input_resampling = (
+            node.declare_parameter('dynamic_input_resampling', False)
+            .get_parameter_value().bool_value
+        )
         if dynamic_input_resampling:
+            node.get_logger().info('Using dynamic resampling')
+            node.destroy_node()
             return ResamplingNode(DynamicResamplingOnCallbackStrategy())
         else:
+            node.get_logger().info('Using static resampling')
+            node.destroy_node()
             return ResamplingNode(StaticResamplingOnCallbackStrategy())
 
 
 def main():
-    rospy.init_node('resampling_node')
+    rclpy.init()
 
     resampling_node = ResamplingNodeFactory.create()
     resampling_node.run()
+
+    resampling_node.destroy_node()
+    rclpy.shutdown()
 
 
 if __name__ == '__main__':
     try:
         main()
-    except rospy.ROSInterruptException:
+    except KeyboardInterrupt:
         pass
