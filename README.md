@@ -1,6 +1,8 @@
 # audio_utils
 
-ROS nodes and utilities for audio streams.
+ROS2 nodes and utilities for audio streams.
+
+For ROS1, please see the `main-ros1` branch.
 
 Author(s): Marc-Antoine Maheux
 
@@ -119,9 +121,11 @@ The [models](models) folder contains the model trained by [Silero VAD](https://g
 ### Parameters
 
 - `silence_to_voice_threshold` (double): The threshold to detect voice activity when silence was previously detected.
+  The default value is `0.5`.
 - `voice_to_silence_threshold` (double): The threshold to detect silence when voice activity was previously detected.
-It must be lower than `silence_to_voice_threshold`.
+It must be lower than `silence_to_voice_threshold`. The default value is `0.4`.
 - `min_silence_duration_ms` (double): The minimum silence duration in ms.
+The default value is `500`.
 
 ### Subscribed Topics
 

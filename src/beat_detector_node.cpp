@@ -1,87 +1,73 @@
-#include <ros/ros.h>
-#include <std_msgs/Bool.h>
-#include <std_msgs/Float32.h>
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/float32.hpp>
 
 #include <MusicBeatDetector/MusicBeatDetector.h>
 
-#include <audio_utils/AudioFrame.h>
+#include <audio_utils/msg/audio_frame.hpp>
 
 #include <memory>
 
 using namespace introlab;
-using namespace std;
 
 constexpr size_t SupportedChannelCount = 1;
 
-class BeatDetectorNode
+class BeatDetectorNode : public rclcpp::Node
 {
-    ros::NodeHandle m_nodeHandle;
-    ros::NodeHandle m_privateNodeHandle;
+    rclcpp::Subscription<audio_utils::msg::AudioFrame>::SharedPtr m_audioSub;
 
-    ros::Subscriber m_audioSub;
+    rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr m_bpmPub;
+    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr m_beatPub;
 
-    ros::Publisher m_bpmPub;
-    ros::Publisher m_beatPub;
-
-    std_msgs::Float32 m_bpmMsg;
-    std_msgs::Bool m_beatMsg;
+    std_msgs::msg::Float32 m_bpmMsg;
+    std_msgs::msg::Bool m_beatMsg;
 
     size_t m_samplingFrequency;
     size_t m_frameSampleCount;
 
-    unique_ptr<MusicBeatDetector> m_musicBeatDetector;
+    std::unique_ptr<MusicBeatDetector> m_musicBeatDetector;
 
 public:
-    BeatDetectorNode() : m_privateNodeHandle("~")
+    BeatDetectorNode() : rclcpp::Node("beat_detector_node")
     {
-        int samplingFrequency;
-        int frameSampleCount;
-        int ossFftWindowSize;
-        int fluxHammingSize;
-        int ossBpmWindowSize;
-        float minBpm;
-        float maxBpm;
-        int bpmCandidateCount;
+        m_samplingFrequency = declare_parameter("sampling_frequency", 44100);
+        m_frameSampleCount = declare_parameter("frame_sample_count", 128);
+        size_t ossFftWindowSize = declare_parameter("oss_fft_window_size", 1024);
+        size_t fluxHammingSize = declare_parameter("flux_hamming_size", 15);
+        size_t ossBpmWindowSize = declare_parameter("oss_bpm_window_size", 1024);
+        float minBpm = declare_parameter("min_bpm", 50.f);
+        float maxBpm = declare_parameter("min_bpm", 180.f);
+        size_t bpmCandidateCount = declare_parameter("min_bpm", 10);
 
-        m_privateNodeHandle.param<int>("sampling_frequency", samplingFrequency, 44100);
-        m_privateNodeHandle.param<int>("frame_sample_count", frameSampleCount, 128);
-        m_privateNodeHandle.param<int>("oss_fft_window_size", ossFftWindowSize, 1024);
-        m_privateNodeHandle.param<int>("flux_hamming_size", fluxHammingSize, 15);
-        m_privateNodeHandle.param<int>("oss_bpm_window_size", ossBpmWindowSize, 1024);
-        m_privateNodeHandle.param<float>("min_bpm", minBpm, 50);
-        m_privateNodeHandle.param<float>("max_bpm", maxBpm, 180);
-        m_privateNodeHandle.param<int>("bpm_candidate_count", bpmCandidateCount, 10);
-
-        m_samplingFrequency = static_cast<size_t>(samplingFrequency);
-        m_frameSampleCount = static_cast<size_t>(frameSampleCount);
-
-        m_musicBeatDetector = make_unique<MusicBeatDetector>(
+        m_musicBeatDetector = std::make_unique<MusicBeatDetector>(
             m_samplingFrequency,
             m_frameSampleCount,
-            static_cast<size_t>(ossFftWindowSize),
-            static_cast<size_t>(fluxHammingSize),
-            static_cast<size_t>(ossBpmWindowSize),
+            ossFftWindowSize,
+            fluxHammingSize,
+            ossBpmWindowSize,
             minBpm,
             maxBpm,
-            static_cast<size_t>(bpmCandidateCount));
+            bpmCandidateCount);
 
-        m_audioSub = m_nodeHandle.subscribe("audio_in", 10, &BeatDetectorNode::audioCallback, this);
+        m_audioSub = create_subscription<audio_utils::msg::AudioFrame>(
+            "audio_in",
+            10,
+            [this] (const audio_utils::msg::AudioFrame::SharedPtr msg) { audioCallback(msg); });
 
-        m_bpmPub = m_nodeHandle.advertise<std_msgs::Float32>("bpm", 1000);
-        m_beatPub = m_nodeHandle.advertise<std_msgs::Bool>("beat", 1000);
+        m_bpmPub = create_publisher<std_msgs::msg::Float32>("bpm", 1000);
+        m_beatPub = create_publisher<std_msgs::msg::Bool>("beat", 1000);
     }
 
-    void run() { ros::spin(); }
-
 private:
-    void audioCallback(const audio_utils::AudioFramePtr& msg)
+    void audioCallback(const audio_utils::msg::AudioFrame::SharedPtr msg)
     {
         PcmAudioFrameFormat format = parseFormat(msg->format);
         if (msg->channel_count != SupportedChannelCount || msg->sampling_frequency != m_samplingFrequency ||
             (msg->frame_sample_count % m_frameSampleCount) != 0 ||
             msg->data.size() != size(format, msg->channel_count, msg->frame_sample_count))
         {
-            ROS_ERROR(
+            RCLCPP_ERROR(
+                get_logger(),
                 "Not supported audio frame (msg->channel_count=%d, "
                 "sampling_frequency=%d, frame_sample_count=%d, data_size=%ld)",
                 msg->channel_count,
@@ -101,17 +87,16 @@ private:
             m_beatMsg.data = m_beatMsg.data || beat.isBeat;
         }
 
-        m_bpmPub.publish(m_bpmMsg);
-        m_beatPub.publish(m_beatMsg);
+        m_bpmPub->publish(m_bpmMsg);
+        m_beatPub->publish(m_beatMsg);
     }
 };
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "beat_detector_node");
-
-    BeatDetectorNode node;
-    node.run();
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<BeatDetectorNode>());
+    rclcpp::shutdown();
 
     return 0;
 }

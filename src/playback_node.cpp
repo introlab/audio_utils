@@ -4,9 +4,9 @@
 
 #include <MusicBeatDetector/Utils/Exception/InvalidValueException.h>
 
-#include <audio_utils/AudioFrame.h>
+#include <rclcpp/rclcpp.hpp>
 
-#include <ros/ros.h>
+#include <audio_utils/msg/audio_frame.hpp>
 
 #include <atomic>
 #include <chrono>
@@ -40,9 +40,8 @@ struct PlaybackNodeConfiguration
     }
 };
 
-class PlaybackNode
+class PlaybackNode : public rclcpp::Node
 {
-    ros::NodeHandle m_nodeHandle;
     PlaybackNodeConfiguration m_configuration;
 
     unique_ptr<PcmDevice> m_playbackDevice;

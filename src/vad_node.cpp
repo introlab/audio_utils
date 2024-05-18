@@ -3,11 +3,11 @@
 #include <MusicBeatDetector/Utils/Data/PackedAudioFrame.h>
 #include <MusicBeatDetector/Utils/Exception/NotSupportedException.h>
 
-#include <audio_utils/VoiceActivity.h>
-#include <audio_utils/AudioFrame.h>
+#include <audio_utils/msg/voice_activity.hpp>
+#include <audio_utils/msg/audio_frame.hpp>
 
-#include <ros/ros.h>
-#include <ros/package.h>
+#include <rclcpp/rclcpp.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 
 #include <onnxruntime_cxx_api.h>
 
@@ -19,6 +19,8 @@ using namespace std;
 constexpr size_t SupportedChannelCount = 1;
 constexpr size_t SupportedSamplingFrequency = 16000;
 constexpr size_t SupportedFrameSampleCount = 512;
+
+constexpr const char* NODE_NAME = "vad_node";
 
 enum class VadStateType
 {
@@ -84,7 +86,7 @@ public:
         m_sessionOptions.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
         m_sessionOptions.SetLogSeverityLevel(ORT_LOGGING_LEVEL_ERROR);
 
-        string modelPath = ros::package::getPath("audio_utils") + "/models/silero_vad.onnx";
+        string modelPath = ament_index_cpp::get_package_share_directory("audio_utils") + "/models/silero_vad.onnx";
         m_session = make_unique<Ort::Session>(m_env, modelPath.c_str(), m_sessionOptions);
         m_cpuMemoryInfo = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
 
@@ -191,37 +193,39 @@ public:
     }
 };
 
-class VadNode
+class VadNode : public rclcpp::Node
 {
-    ros::NodeHandle m_nodeHandle;
+    rclcpp::Subscription<audio_utils::msg::AudioFrame>::SharedPtr m_audioSub;
+    rclcpp::Publisher<audio_utils::msg::VoiceActivity>::SharedPtr m_voiceActivityPub;
 
-    ros::Subscriber m_audioSub;
-    ros::Publisher m_voiceActivityPub;
-
-    uint32_t m_lastSeq;
     Vad m_vad;
-    audio_utils::VoiceActivity m_voiceActivityMsg;
+    audio_utils::msg::VoiceActivity m_voiceActivityMsg;
 
 public:
-    VadNode(float silenceToVoiceThreshold, float voiceToSilenceThreshold, size_t minSilenceFrameCount)
-        : m_lastSeq(0),
-          m_vad(silenceToVoiceThreshold, voiceToSilenceThreshold, minSilenceFrameCount)
+    VadNode()
+        : rclcpp::Node(NODE_NAME),
+          m_vad(
+              declare_parameter("silence_to_voice_threshold", 0.5f),
+              declare_parameter("voice_to_silence_threshold", 0.4f),
+              declare_parameter("min_silence_duration_ms", 500) * SupportedSamplingFrequency / 1000 / SupportedFrameSampleCount)
     {
-        m_audioSub = m_nodeHandle.subscribe("audio_in", 100, &VadNode::audioCallback, this);
-        m_voiceActivityPub = m_nodeHandle.advertise<audio_utils::VoiceActivity>("voice_activity", 100);
+        m_audioSub = create_subscription<audio_utils::msg::AudioFrame>(
+            "audio_in",
+            100,
+            [this] (const audio_utils::msg::AudioFrame::SharedPtr msg) { audioCallback(msg); });
+        m_voiceActivityPub = create_publisher<audio_utils::msg::VoiceActivity>("voice_activity", 100);
     }
 
-    void run() { ros::spin(); }
-
 private:
-    void audioCallback(const audio_utils::AudioFramePtr& msg)
+    void audioCallback(const audio_utils::msg::AudioFrame::SharedPtr msg)
     {
         PcmAudioFrameFormat format = parseFormat(msg->format);
         if (msg->channel_count != SupportedChannelCount || msg->sampling_frequency != SupportedSamplingFrequency ||
             (msg->frame_sample_count % SupportedFrameSampleCount) != 0 ||
             msg->data.size() != size(format, msg->channel_count, msg->frame_sample_count))
         {
-            ROS_ERROR(
+            RCLCPP_ERROR(
+                get_logger(),
                 "Not supported audio frame (msg->channel_count=%d, "
                 "sampling_frequency=%d, frame_sample_count=%d, data_size=%ld)",
                 msg->channel_count,
@@ -230,12 +234,6 @@ private:
                 msg->data.size());
             return;
         }
-
-        if (msg->header.seq != m_lastSeq + 1)
-        {
-            m_vad.reset();
-        }
-        m_lastSeq = msg->header.seq;
 
         PcmAudioFrame frame(format, msg->channel_count, msg->frame_sample_count, msg->data.data());
 
@@ -247,57 +245,22 @@ private:
                 m_voiceActivityMsg.is_voice || m_vad.detect(frame.slice(i, SupportedFrameSampleCount));
         }
 
-        m_voiceActivityPub.publish(m_voiceActivityMsg);
+        m_voiceActivityPub->publish(m_voiceActivityMsg);
     }
 };
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "vad_node");
-
-    ros::NodeHandle privateNodeHandle("~");
-
-    double silenceToVoiceThreshold;
-    if (!privateNodeHandle.getParam("silence_to_voice_threshold", silenceToVoiceThreshold))
-    {
-        ROS_ERROR("The parameter silence_to_voice_threshold is required.");
-        return -1;
-    }
-
-    double voiceToSilenceThreshold;
-    if (!privateNodeHandle.getParam("voice_to_silence_threshold", voiceToSilenceThreshold))
-    {
-        ROS_ERROR("The parameter voice_to_silence_threshold is required.");
-        return -1;
-    }
-    if (voiceToSilenceThreshold >= silenceToVoiceThreshold)
-    {
-        ROS_ERROR("voice_to_silence_threshold must be lower than voice_to_silence_threshold.");
-        return -1;
-    }
-
-    double minSilenceDurationMs;
-    if (!privateNodeHandle.getParam("min_silence_duration_ms", minSilenceDurationMs))
-    {
-        ROS_ERROR("The parameter min_silence_duration_ms is required.");
-        return -1;
-    }
-    size_t minSilenceFrameCount =
-        static_cast<size_t>(minSilenceDurationMs * SupportedSamplingFrequency / 1000 / SupportedFrameSampleCount);
-
+    rclcpp::init(argc, argv);
     try
     {
-        VadNode node(
-            static_cast<float>(silenceToVoiceThreshold),
-            static_cast<float>(voiceToSilenceThreshold),
-            minSilenceFrameCount);
-        node.run();
+        rclcpp::spin(std::make_shared<VadNode>());
+        rclcpp::shutdown();
     }
     catch (const exception& e)
     {
-        ROS_ERROR("%s", e.what());
+        RCLCPP_ERROR(rclcpp::get_logger(NODE_NAME), "%s", e.what());
         return -1;
     }
-
     return 0;
 }
