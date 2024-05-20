@@ -216,6 +216,11 @@ public:
         m_voiceActivityPub = create_publisher<audio_utils::msg::VoiceActivity>("voice_activity", 100);
     }
 
+    void run()
+    {
+        rclcpp::spin(shared_from_this());
+    }
+
 private:
     void audioCallback(const audio_utils::msg::AudioFrame::SharedPtr msg)
     {
@@ -254,13 +259,14 @@ int main(int argc, char** argv)
     rclcpp::init(argc, argv);
     try
     {
-        rclcpp::spin(std::make_shared<VadNode>());
-        rclcpp::shutdown();
+        auto node = std::make_shared<VadNode>();
+        node->run();
     }
     catch (const exception& e)
     {
         RCLCPP_ERROR(rclcpp::get_logger(NODE_NAME), "%s", e.what());
         return -1;
     }
+        rclcpp::shutdown();
     return 0;
 }
