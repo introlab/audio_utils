@@ -267,6 +267,6 @@ int main(int argc, char** argv)
         RCLCPP_ERROR(rclcpp::get_logger(NODE_NAME), "%s", e.what());
         return -1;
     }
-        rclcpp::shutdown();
+    rclcpp::shutdown();
     return 0;
 }
