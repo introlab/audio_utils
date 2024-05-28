@@ -130,7 +130,8 @@ install(PROGRAMS
 
 # Launch files
 install(DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME})
+  DESTINATION share/${PROJECT_NAME}
+)
 
 # Exported libs
 ament_export_include_directories(
@@ -138,8 +139,8 @@ ament_export_include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/armadillo-code/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/fftw/build/include
 )
-ament_export_libraries(
-  MusicBeatDetector
-)
+#ament_export_libraries(
+#  MusicBeatDetector
+#)
 
 ament_package()
