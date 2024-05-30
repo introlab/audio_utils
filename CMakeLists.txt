@@ -7,7 +7,7 @@ if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
 endif()
 
-# Default to C++14
+# Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
 endif()
@@ -56,7 +56,7 @@ if (ONNXRUNTIME_NAME)
     install(DIRECTORY ${CMAKE_BINARY_DIR}/${ONNXRUNTIME_NAME}/lib/ DESTINATION lib)
 endif()
 
-
+# Generate messages
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/AudioFrame.msg"
   "msg/VoiceActivity.msg"
@@ -129,9 +129,7 @@ install(PROGRAMS
 )
 
 # Launch files
-install(DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}
-)
+install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
 
 # Exported libs
 ament_export_include_directories(
