@@ -321,16 +321,16 @@ class ResamplingNodeFactory(rclpy.node.Node):
 
 def main():
     rclpy.init()
-
     resampling_node = ResamplingNodeFactory.create()
-    resampling_node.run()
 
-    resampling_node.destroy_node()
-    rclpy.shutdown()
+    try:
+        resampling_node.run()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        resampling_node.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == '__main__':
-    try:
-        main()
-    except KeyboardInterrupt:
-        pass
+    main()

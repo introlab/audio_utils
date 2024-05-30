@@ -45,15 +45,16 @@ class FormatConversionNode(rclpy.node.Node):
 
 def main():
     rclpy.init()
-
     format_conversion_node = FormatConversionNode()
-    format_conversion_node.run()
 
-    format_conversion_node.destroy_node()
-    rclpy.shutdown()
-
-if __name__ == '__main__':
     try:
-        main()
+        format_conversion_node.run()
     except KeyboardInterrupt:
         pass
+    finally:
+        format_conversion_node.destroy_node()
+        rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()

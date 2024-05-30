@@ -27,16 +27,16 @@ class RawFileWriterNode(rclpy.node.Node):
 
 def main():
     rclpy.init()
-
     raw_file_writer_node = RawFileWriterNode()
-    raw_file_writer_node.run()
 
-    raw_file_writer_node.destroy_node()
-    rclpy.shutdown()
+    try:
+        raw_file_writer_node.run()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        raw_file_writer_node.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == '__main__':
-    try:
-        main()
-    except KeyboardInterrupt:
-        pass
+    main()
