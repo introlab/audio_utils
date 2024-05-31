@@ -18,7 +18,7 @@ endif()
 
 set(MUSIC_BEAT_DETECTOR_ENABLE_TESTS OFF CACHE BOOL "")
 
-# find dependencies
+# Find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
@@ -67,12 +67,16 @@ add_subdirectory(src/MusicBeatDetector)
 
 include_directories(
   src/MusicBeatDetector/MusicBeatDetector/include
-  src/MusicBeatDetector/Utils/include
   src/MusicBeatDetector/3rdParty/fftw/build/include
   src/MusicBeatDetector/3rdParty/armadillo-code/include
   src/MusicBeatDetector/3rdParty/OpenBLAS
 )
 
+install(DIRECTORY src/MusicBeatDetector/MusicBeatDetector/include/ DESTINATION include)
+install(DIRECTORY src/MusicBeatDetector/3rdParty/fftw/build/include/ DESTINATION include)
+install(DIRECTORY src/MusicBeatDetector/3rdParty/armadillo-code/include/ DESTINATION include)
+install(DIRECTORY src/MusicBeatDetector/3rdParty/OpenBLAS/ DESTINATION include)
+install(TARGETS MusicBeatDetector DESTINATION lib)
 
 # C++ Nodes
 add_executable(beat_detector_node src/beat_detector_node.cpp)
@@ -133,12 +137,16 @@ install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
 
 # Exported libs
 ament_export_include_directories(
+  include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/MusicBeatDetector/include
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/armadillo-code/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/fftw/build/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/armadillo-code/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/OpenBLAS
 )
-#ament_export_libraries(
-#  MusicBeatDetector
-#)
+ament_export_libraries(
+  MusicBeatDetector
+  ${openblas_LIBRARY}
+  ${fftw_LIBRARY}
+)
 
 ament_package()
