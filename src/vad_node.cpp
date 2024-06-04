@@ -207,19 +207,17 @@ public:
           m_vad(
               declare_parameter("silence_to_voice_threshold", 0.5f),
               declare_parameter("voice_to_silence_threshold", 0.4f),
-              declare_parameter("min_silence_duration_ms", 500) * SupportedSamplingFrequency / 1000 / SupportedFrameSampleCount)
+              declare_parameter("min_silence_duration_ms", 500) * SupportedSamplingFrequency / 1000 /
+                  SupportedFrameSampleCount)
     {
         m_audioSub = create_subscription<audio_utils::msg::AudioFrame>(
             "audio_in",
             100,
-            [this] (const audio_utils::msg::AudioFrame::SharedPtr msg) { audioCallback(msg); });
+            [this](const audio_utils::msg::AudioFrame::SharedPtr msg) { audioCallback(msg); });
         m_voiceActivityPub = create_publisher<audio_utils::msg::VoiceActivity>("voice_activity", 100);
     }
 
-    void run()
-    {
-        rclcpp::spin(shared_from_this());
-    }
+    void run() { rclcpp::spin(shared_from_this()); }
 
 private:
     void audioCallback(const audio_utils::msg::AudioFrame::SharedPtr msg)

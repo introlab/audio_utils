@@ -52,16 +52,13 @@ public:
         m_audioSub = create_subscription<audio_utils::msg::AudioFrame>(
             "audio_in",
             10,
-            [this] (const audio_utils::msg::AudioFrame::SharedPtr msg) { audioCallback(msg); });
+            [this](const audio_utils::msg::AudioFrame::SharedPtr msg) { audioCallback(msg); });
 
         m_bpmPub = create_publisher<std_msgs::msg::Float32>("bpm", 1000);
         m_beatPub = create_publisher<std_msgs::msg::Bool>("beat", 1000);
     }
 
-    void run()
-    {
-        rclcpp::spin(shared_from_this());
-    }
+    void run() { rclcpp::spin(shared_from_this()); }
 
 private:
     void audioCallback(const audio_utils::msg::AudioFrame::SharedPtr msg)

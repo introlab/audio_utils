@@ -188,7 +188,10 @@ void run(
     audioFrameMsg.frame_sample_count = configuration.frameSampleCount;
     audioFrameMsg.data.resize(configuration.merge ? oneChannelPcmFrame.size() : manyChannelPcmFrame.size());
 
-    AudioFrameTimestampCalculator timestampCalculator(node, configuration.samplingFrequency, configuration.frameSampleCount);
+    AudioFrameTimestampCalculator timestampCalculator(
+        node,
+        configuration.samplingFrequency,
+        configuration.frameSampleCount);
 
     while (rclcpp::ok())
     {

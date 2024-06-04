@@ -60,8 +60,7 @@ public:
             RCLCPP_WARN(get_logger(), "The parameter channel_map is only supported with the PulseAudio backend");
         }
 
-        m_frameDuration =
-            std::chrono::milliseconds(1000 * m_frameSampleCount / m_samplingFrequency);
+        m_frameDuration = std::chrono::milliseconds(1000 * m_frameSampleCount / m_samplingFrequency);
 
         m_playbackDevice = createPlaybackDevice();
         m_emptyFrame = std::make_unique<PcmAudioFrame>(m_format, m_channelCount, m_frameSampleCount);
@@ -70,7 +69,7 @@ public:
         m_audioSub = create_subscription<audio_utils::msg::AudioFrame>(
             "audio_in",
             100,
-            [this] (const audio_utils::msg::AudioFrame::SharedPtr msg) { audioCallback(msg); });
+            [this](const audio_utils::msg::AudioFrame::SharedPtr msg) { audioCallback(msg); });
     }
 
     void run()
@@ -90,11 +89,11 @@ private:
     void audioCallback(const audio_utils::msg::AudioFrame::SharedPtr msg)
     {
         if (msg->format != m_formatString || msg->channel_count != m_channelCount ||
-            msg->sampling_frequency != m_samplingFrequency ||
-            msg->frame_sample_count != m_frameSampleCount ||
+            msg->sampling_frequency != m_samplingFrequency || msg->frame_sample_count != m_frameSampleCount ||
             msg->data.size() != size(m_format, msg->channel_count, msg->frame_sample_count))
         {
-            RCLCPP_ERROR(get_logger(),
+            RCLCPP_ERROR(
+                get_logger(),
                 "Not supported audio frame (msg->format=%s, msg->channel_count=%d,"
                 "sampling_frequency=%d, frame_sample_count=%d, data_size=%ld)",
                 msg->format.c_str(),
