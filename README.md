@@ -48,7 +48,7 @@ This node captures the sound from an ALSA or PulseAudio device and publishes it 
   `alsa_input.usb-IntRoLab_16SoundsUSB_Audio_2.0-00.multichannel-input` for PulseAudio).
   The default value is `default`.
 - `format` (string): The audio format (
-  see [audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)).
+  see [audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)).
   The default value is `signed_16`.
 - `channel_count` (int): The device channel count. The default value is `1`.
 - `sampling_frequency` (int): The device sampling frequency. The default value is `16000`.
@@ -62,7 +62,7 @@ This node captures the sound from an ALSA or PulseAudio device and publishes it 
 
 ### Published Topics
 
-- `audio_out` ([audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)) The
+- `audio_out` ([audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)) The
   captured sound.
 
 ## `playback_node`
@@ -77,7 +77,7 @@ This node captures the sound from a topic and plays it to an ALSA or PulseAudio 
   `alsa_input.usb-IntRoLab_16SoundsUSB_Audio_2.0-00.multichannel-input` for PulseAudio).
   The default value is `default`.
 - `format` (string): The audio format (
-  see [audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)).
+  see [audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)).
   The default value is `signed_16`.
 - `channel_count` (int): The device channel count. The default value is `1`.
 - `sampling_frequency` (int): The device sampling frequency. The default value is `16000`.
@@ -88,7 +88,7 @@ This node captures the sound from a topic and plays it to an ALSA or PulseAudio 
 
 ### Subscribed Topics
 
-- `audio_in` ([audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)) The sound
+- `audio_in` ([audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)) The sound
   to play.
 
 ## `beat_detector_node`
@@ -110,7 +110,7 @@ This node estimates the song tempo and detects if the beat is in the current fra
 
 ### Subscribed Topics
 
-- `audio_in` ([audio_utils/AudioFrame](msg/AudioFrame.msg)) The sound
+- `audio_in` ([audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)) The sound
   to analyze. The channel count must be 1.
 
 ### Published Topics
@@ -134,12 +134,12 @@ The default value is `500`.
 
 ### Subscribed Topics
 
-- `audio_in` ([audio_utils/AudioFrame](msg/AudioFrame.msg)) The sound
+- `audio_in` ([audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)) The sound
   to analyze. The channel count must be 1. The samply frequency must be 16000 Hz. The frame sample count must be a multiple of 512.
 
 ### Published Topics
 
-- `voice_activity` ([audio_utils/VoiceActivity](msg/VoiceActivity.msg)) The voice activity detection result.
+- `voice_activity` ([audio_utils_msgs/VoiceActivity](audio_utils_msgs/msg/VoiceActivity.msg)) The voice activity detection result.
 
 ## `format_conversion_node.py`
 
@@ -148,18 +148,18 @@ This node converts the format of an audio topic.
 ### Parameters
 
 - `input_format` (string): The input audio format (
-  see [audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)).
+  see [audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)).
 - `output_format` (string): The output audio format (
-  see [audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)).
+  see [audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)).
 
 ### Subscribed Topics
 
-- `audio_in` ([audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)) The sound
+- `audio_in` ([audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)) The sound
   topic to convert.
 
 ### Published Topics
 
-- `audio_out` ([audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)) The
+- `audio_out` ([audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)) The
   converted sound.
 
 ## `resampling_node.py`
@@ -169,9 +169,9 @@ This node resamples an audio topic.
 ### Parameters
 
 - `input_format` (string): The input audio format (
-  see [audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)).
+  see [audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)).
 - `output_format` (string): The output audio format (
-  see [audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)).
+  see [audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)).
 - `channel_count` (int): The device channel count.
 - `input_sampling_frequency` (int): The input sampling frequency.
 - `output_sampling_frequency` (int): The output sampling frequency.
@@ -183,12 +183,12 @@ This node resamples an audio topic.
 
 ### Subscribed Topics
 
-- `audio_in` ([audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)) The sound
+- `audio_in` ([audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)) The sound
   topic to resample.
 
 ### Published Topics
 
-- `audio_out` ([audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)) The
+- `audio_out` ([audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)) The
   resampled sound.
 
 ## `split_channel_node.py`
@@ -198,21 +198,21 @@ This node split a multichannel audio topic into several mono audio topics.
 ### Parameters
 
 - `input_format` (string): The input audio format (
-  see [audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)).
+  see [audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)).
 - `output_format` (string): The output audio format (
-  see [audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)).
+  see [audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)).
 - `channel_count` (int): The device channel count.
 
 ### Subscribed Topics
 
-- `audio_in` ([audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)) The sound
+- `audio_in` ([audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)) The sound
   topic to split.
 
 ### Published Topics
 
-- `audio_out_0` ([audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)) The
+- `audio_out_0` ([audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)) The
   first channel sound.
-- `audio_out_1` ([audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)) The
+- `audio_out_1` ([audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)) The
   second channel sound.
 - ...
 
@@ -226,7 +226,7 @@ This node writes the raw sound data to a file.
 
 ### Subscribed Topics
 
-- `audio_in` ([audio_utils/AudioFrame](https://github.com/introlab/audio_utils/blob/main/msg/AudioFrame.msg)) The sound
+- `audio_in` ([audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)) The sound
   topic to write.
 
 # License

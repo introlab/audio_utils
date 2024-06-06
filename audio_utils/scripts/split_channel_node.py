@@ -3,7 +3,7 @@
 import rclpy
 import rclpy.node
 
-from audio_utils.msg import AudioFrame
+from audio_utils_msgs.msg import AudioFrame
 from audio_utils import get_format_information, convert_audio_data_to_numpy_frames, convert_numpy_frames_to_audio_data
 
 

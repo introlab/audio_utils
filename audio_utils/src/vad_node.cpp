@@ -3,8 +3,8 @@
 #include <MusicBeatDetector/Utils/Data/PackedAudioFrame.h>
 #include <MusicBeatDetector/Utils/Exception/NotSupportedException.h>
 
-#include <audio_utils/msg/voice_activity.hpp>
-#include <audio_utils/msg/audio_frame.hpp>
+#include <audio_utils_msgs/msg/voice_activity.hpp>
+#include <audio_utils_msgs/msg/audio_frame.hpp>
 
 #include <rclcpp/rclcpp.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
@@ -195,11 +195,11 @@ public:
 
 class VadNode : public rclcpp::Node
 {
-    rclcpp::Subscription<audio_utils::msg::AudioFrame>::SharedPtr m_audioSub;
-    rclcpp::Publisher<audio_utils::msg::VoiceActivity>::SharedPtr m_voiceActivityPub;
+    rclcpp::Subscription<audio_utils_msgs::msg::AudioFrame>::SharedPtr m_audioSub;
+    rclcpp::Publisher<audio_utils_msgs::msg::VoiceActivity>::SharedPtr m_voiceActivityPub;
 
     Vad m_vad;
-    audio_utils::msg::VoiceActivity m_voiceActivityMsg;
+    audio_utils_msgs::msg::VoiceActivity m_voiceActivityMsg;
 
 public:
     VadNode()
@@ -210,17 +210,17 @@ public:
               declare_parameter("min_silence_duration_ms", 500) * SupportedSamplingFrequency / 1000 /
                   SupportedFrameSampleCount)
     {
-        m_audioSub = create_subscription<audio_utils::msg::AudioFrame>(
+        m_audioSub = create_subscription<audio_utils_msgs::msg::AudioFrame>(
             "audio_in",
             100,
-            [this](const audio_utils::msg::AudioFrame::SharedPtr msg) { audioCallback(msg); });
-        m_voiceActivityPub = create_publisher<audio_utils::msg::VoiceActivity>("voice_activity", 100);
+            [this](const audio_utils_msgs::msg::AudioFrame::SharedPtr msg) { audioCallback(msg); });
+        m_voiceActivityPub = create_publisher<audio_utils_msgs::msg::VoiceActivity>("voice_activity", 100);
     }
 
     void run() { rclcpp::spin(shared_from_this()); }
 
 private:
-    void audioCallback(const audio_utils::msg::AudioFrame::SharedPtr msg)
+    void audioCallback(const audio_utils_msgs::msg::AudioFrame::SharedPtr msg)
     {
         PcmAudioFrameFormat format = parseFormat(msg->format);
         if (msg->channel_count != SupportedChannelCount || msg->sampling_frequency != SupportedSamplingFrequency ||

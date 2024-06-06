@@ -22,7 +22,7 @@ set(MUSIC_BEAT_DETECTOR_ENABLE_TESTS OFF CACHE BOOL "")
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
-find_package(std_msgs REQUIRED)
+find_package(audio_utils_msgs REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
@@ -56,13 +56,6 @@ if (ONNXRUNTIME_NAME)
     install(DIRECTORY ${CMAKE_BINARY_DIR}/${ONNXRUNTIME_NAME}/lib/ DESTINATION lib)
 endif()
 
-# Generate messages
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/AudioFrame.msg"
-  "msg/VoiceActivity.msg"
-  DEPENDENCIES std_msgs
-)
-
 add_subdirectory(src/MusicBeatDetector)
 
 include_directories(
@@ -80,9 +73,8 @@ install(TARGETS MusicBeatDetector DESTINATION lib)
 
 # C++ Nodes
 add_executable(beat_detector_node src/beat_detector_node.cpp)
-ament_target_dependencies(beat_detector_node rclcpp std_msgs)
+ament_target_dependencies(beat_detector_node rclcpp std_msgs audio_utils_msgs)
 target_link_libraries(beat_detector_node MusicBeatDetector)
-rosidl_target_interfaces(beat_detector_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 install(TARGETS beat_detector_node DESTINATION lib/${PROJECT_NAME})
 
 
@@ -93,9 +85,8 @@ add_executable(capture_node src/capture_node.cpp
   src/Utils/AlsaException.cpp
   src/Utils/PulseAudioException.cpp
 )
-ament_target_dependencies(capture_node rclcpp std_msgs)
+ament_target_dependencies(capture_node rclcpp std_msgs audio_utils_msgs)
 target_link_libraries(capture_node MusicBeatDetector asound pulse-simple pulse)
-rosidl_target_interfaces(capture_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 install(TARGETS capture_node DESTINATION lib/${PROJECT_NAME})
 
 
@@ -107,16 +98,14 @@ add_executable(playback_node src/playback_node.cpp
   src/Utils/PulseAudioException.cpp
   src/Utils/Semaphore.cpp
 )
-ament_target_dependencies(playback_node rclcpp std_msgs)
+ament_target_dependencies(playback_node rclcpp std_msgs audio_utils_msgs)
 target_link_libraries(playback_node MusicBeatDetector asound pulse-simple pulse)
-rosidl_target_interfaces(playback_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 install(TARGETS playback_node DESTINATION lib/${PROJECT_NAME})
 
 
 add_executable(vad_node src/vad_node.cpp)
-ament_target_dependencies(vad_node rclcpp std_msgs ament_index_cpp)
+ament_target_dependencies(vad_node rclcpp std_msgs audio_utils_msgs ament_index_cpp)
 target_link_libraries(vad_node MusicBeatDetector ${ONNXRUNTIME_LIBRARIES})
-rosidl_target_interfaces(vad_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 install(TARGETS vad_node DESTINATION lib/${PROJECT_NAME})
 install(DIRECTORY models DESTINATION share/${PROJECT_NAME})
 
@@ -145,8 +134,10 @@ ament_export_include_directories(
 )
 ament_export_libraries(
   MusicBeatDetector
-  ${openblas_LIBRARY}
-  ${fftw_LIBRARY}
+  MusicBeatDetector_openblas
+  MusicBeatDetector_fftw
 )
+
+ament_export_dependencies(audio_utils_msgs)
 
 ament_package()

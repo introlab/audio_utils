@@ -1,6 +1,6 @@
 import numpy as np
 
-from audio_utils.msg import AudioFrame
+from audio_utils_msgs.msg import AudioFrame
 
 
 def get_format_information(format):

@@ -4,7 +4,7 @@
 
 #include <MusicBeatDetector/MusicBeatDetector.h>
 
-#include <audio_utils/msg/audio_frame.hpp>
+#include <audio_utils_msgs/msg/audio_frame.hpp>
 
 #include <memory>
 
@@ -14,7 +14,7 @@ constexpr size_t SupportedChannelCount = 1;
 
 class BeatDetectorNode : public rclcpp::Node
 {
-    rclcpp::Subscription<audio_utils::msg::AudioFrame>::SharedPtr m_audioSub;
+    rclcpp::Subscription<audio_utils_msgs::msg::AudioFrame>::SharedPtr m_audioSub;
 
     rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr m_bpmPub;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr m_beatPub;
@@ -49,10 +49,10 @@ public:
             maxBpm,
             bpmCandidateCount);
 
-        m_audioSub = create_subscription<audio_utils::msg::AudioFrame>(
+        m_audioSub = create_subscription<audio_utils_msgs::msg::AudioFrame>(
             "audio_in",
             10,
-            [this](const audio_utils::msg::AudioFrame::SharedPtr msg) { audioCallback(msg); });
+            [this](const audio_utils_msgs::msg::AudioFrame::SharedPtr msg) { audioCallback(msg); });
 
         m_bpmPub = create_publisher<std_msgs::msg::Float32>("bpm", 1000);
         m_beatPub = create_publisher<std_msgs::msg::Bool>("beat", 1000);
@@ -61,7 +61,7 @@ public:
     void run() { rclcpp::spin(shared_from_this()); }
 
 private:
-    void audioCallback(const audio_utils::msg::AudioFrame::SharedPtr msg)
+    void audioCallback(const audio_utils_msgs::msg::AudioFrame::SharedPtr msg)
     {
         PcmAudioFrameFormat format = parseFormat(msg->format);
         if (msg->channel_count != SupportedChannelCount || msg->sampling_frequency != m_samplingFrequency ||

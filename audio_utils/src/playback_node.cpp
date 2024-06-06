@@ -6,7 +6,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 
-#include <audio_utils/msg/audio_frame.hpp>
+#include <audio_utils_msgs/msg/audio_frame.hpp>
 
 #include <atomic>
 #include <chrono>
@@ -31,13 +31,13 @@ class PlaybackNode : public rclcpp::Node
     std::unique_ptr<PcmDevice> m_playbackDevice;
     std::unique_ptr<PcmAudioFrame> m_emptyFrame;
 
-    audio_utils::msg::AudioFrame::SharedPtr m_pendingFrame;
+    audio_utils_msgs::msg::AudioFrame::SharedPtr m_pendingFrame;
     Semaphore m_pendingFrameWriteSemaphore;
     Semaphore m_pendingFrameReadSemaphore;
     std::atomic<std::chrono::time_point<std::chrono::system_clock>> m_lastAudioFrameTime;
     std::chrono::nanoseconds m_frameDuration;
 
-    rclcpp::Subscription<audio_utils::msg::AudioFrame>::SharedPtr m_audioSub;
+    rclcpp::Subscription<audio_utils_msgs::msg::AudioFrame>::SharedPtr m_audioSub;
 
 public:
     explicit PlaybackNode()
@@ -66,10 +66,10 @@ public:
         m_emptyFrame = std::make_unique<PcmAudioFrame>(m_format, m_channelCount, m_frameSampleCount);
         m_emptyFrame->clear();
 
-        m_audioSub = create_subscription<audio_utils::msg::AudioFrame>(
+        m_audioSub = create_subscription<audio_utils_msgs::msg::AudioFrame>(
             "audio_in",
             100,
-            [this](const audio_utils::msg::AudioFrame::SharedPtr msg) { audioCallback(msg); });
+            [this](const audio_utils_msgs::msg::AudioFrame::SharedPtr msg) { audioCallback(msg); });
     }
 
     void run()
@@ -86,7 +86,7 @@ public:
     }
 
 private:
-    void audioCallback(const audio_utils::msg::AudioFrame::SharedPtr msg)
+    void audioCallback(const audio_utils_msgs::msg::AudioFrame::SharedPtr msg)
     {
         if (msg->format != m_formatString || msg->channel_count != m_channelCount ||
             msg->sampling_frequency != m_samplingFrequency || msg->frame_sample_count != m_frameSampleCount ||

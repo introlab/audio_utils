@@ -3,7 +3,7 @@
 
 #include <MusicBeatDetector/Utils/Exception/InvalidValueException.h>
 
-#include <audio_utils/msg/audio_frame.hpp>
+#include <audio_utils_msgs/msg/audio_frame.hpp>
 
 #include <rclcpp/rclcpp.hpp>
 
@@ -174,14 +174,14 @@ void run(
     std::shared_ptr<rclcpp::Node>& node,
     std::unique_ptr<PcmDevice> captureDevice,
     const CaptureNodeConfiguration& configuration,
-    rclcpp::Publisher<audio_utils::msg::AudioFrame>::SharedPtr& audioPub)
+    rclcpp::Publisher<audio_utils_msgs::msg::AudioFrame>::SharedPtr& audioPub)
 {
     PcmAudioFrame manyChannelPcmFrame(configuration.format, configuration.channelCount, configuration.frameSampleCount);
     PcmAudioFrame oneChannelPcmFrame(configuration.format, 1, configuration.frameSampleCount);
     PackedAudioFrame<float> manyChannelFrame(configuration.channelCount, configuration.frameSampleCount);
     PackedAudioFrame<float> oneChannelFrame(1, configuration.frameSampleCount);
 
-    audio_utils::msg::AudioFrame audioFrameMsg;
+    audio_utils_msgs::msg::AudioFrame audioFrameMsg;
     audioFrameMsg.format = configuration.formatString;
     audioFrameMsg.channel_count = configuration.merge ? 1 : configuration.channelCount;
     audioFrameMsg.sampling_frequency = configuration.samplingFrequency;
@@ -225,7 +225,7 @@ int main(int argc, char** argv)
     rclcpp::init(argc, argv);
 
     auto node = rclcpp::Node::make_shared("capture_node");
-    auto audioPub = node->create_publisher<audio_utils::msg::AudioFrame>("audio_out", 100);
+    auto audioPub = node->create_publisher<audio_utils_msgs::msg::AudioFrame>("audio_out", 100);
 
     CaptureNodeConfiguration configuration;
     configuration.backendString = node->declare_parameter("backend", "alsa");

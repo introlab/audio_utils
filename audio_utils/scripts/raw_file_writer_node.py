@@ -3,7 +3,7 @@
 import rclpy
 import rclpy.node
 
-from audio_utils.msg import AudioFrame
+from audio_utils_msgs.msg import AudioFrame
 
 
 class RawFileWriterNode(rclpy.node.Node):
