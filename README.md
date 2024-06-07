@@ -57,8 +57,7 @@ This node captures the sound from an ALSA or PulseAudio device and publishes it 
 - `gain` (double): The gain to apply. The default value is `1.0`.
 - `latency_us` (int): The capture latency in microseconds. The default value is `64000`.
 - `channel_map` (Array of string): The PulseAudio channel mapping. If empty or omitted, the default mapping is used.
-  This parameter must be set only with the PulseAudio backend. In launch files, use this syntax :
-  `<rosparam param="channel_map">[]</rosparam>`. The default value is `[]`.
+  This parameter must be set only with the PulseAudio backend. The default value is `[]`.
 
 ### Published Topics
 
