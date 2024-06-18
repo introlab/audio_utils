@@ -53,7 +53,8 @@ def main():
         pass
     finally:
         format_conversion_node.destroy_node()
-        rclpy.shutdown()
+        
+    rclpy.shutdown()
 
 
 if __name__ == '__main__':
