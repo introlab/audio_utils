@@ -75,7 +75,7 @@ class Resampler:
 
         self._node = node
 
-        self._set_rospy_input_parameters(
+        self._set_rclpy_input_parameters(
             self._input_frame_converter.frame_info)
 
         self._audio_frame_msg = self._create_initialiazed_audio_frame_msg(
@@ -151,12 +151,12 @@ class Resampler:
         self._output_frame_converter = OutputFrameConverter.from_output_info(
             self._output_frame_converter.frame_info, new_input_info)
 
-        self._set_rospy_input_parameters(new_input_info)
+        self._set_rclpy_input_parameters(new_input_info)
 
         self._audio_frame_msg = self._create_initialiazed_audio_frame_msg(
             self._output_frame_converter.frame_info)
 
-    def _set_rospy_input_parameters(self, new_input_info: FrameInfo) -> None:
+    def _set_rclpy_input_parameters(self, new_input_info: FrameInfo) -> None:
         self._node.set_parameters([
             rclpy.parameter.Parameter('input_format', rclpy.Parameter.Type.STRING, new_input_info.format),
             rclpy.parameter.Parameter('input_sampling_frequency', rclpy.Parameter.Type.INTEGER, new_input_info.sampling_frequency),

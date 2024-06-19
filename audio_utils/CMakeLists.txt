@@ -4,16 +4,16 @@ project(audio_utils)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
-  set(CMAKE_C_STANDARD 99)
+    set(CMAKE_C_STANDARD 99)
 endif()
 
 # Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD 17)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+    add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
 set(MUSIC_BEAT_DETECTOR_ENABLE_TESTS OFF CACHE BOOL "")
@@ -31,7 +31,7 @@ find_package(rosidl_default_generators REQUIRED)
 # ******* ONNX Runtime dependency *******
 if (EXISTS "/etc/nv_tegra_release")
     if (NOT EXISTS "/usr/local/lib/libonnxruntime.so")
-	message(FATAL_ERROR "The ONNX Runtime is not installed.")
+        message(FATAL_ERROR "The ONNX Runtime is not installed.")
     endif()
     include_directories(/usr/local/include/onnxruntime/core/session)
     set(ONNXRUNTIME_LIBRARIES "/usr/local/lib/libonnxruntime.so")
@@ -50,7 +50,7 @@ if (ONNXRUNTIME_NAME)
     if (NOT EXISTS ${CMAKE_BINARY_DIR}/${ONNXRUNTIME_NAME}/VERSION_NUMBER)
         execute_process(COMMAND tar -xvf ${ONNXRUNTIME_NAME}.tgz WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
     endif()
-    include_directories(${CMAKE_BINARY_DIR}/${ONNXRUNTIME_NAME}/include)
+    include_directories(SYSTEM ${CMAKE_BINARY_DIR}/${ONNXRUNTIME_NAME}/include)
     set(ONNXRUNTIME_LIBRARIES ${CMAKE_BINARY_DIR}/${ONNXRUNTIME_NAME}/lib/libonnxruntime.so)
 
     install(DIRECTORY ${CMAKE_BINARY_DIR}/${ONNXRUNTIME_NAME}/lib/ DESTINATION lib)
@@ -58,11 +58,11 @@ endif()
 
 add_subdirectory(src/MusicBeatDetector)
 
-include_directories(
-  src/MusicBeatDetector/MusicBeatDetector/include
-  src/MusicBeatDetector/3rdParty/fftw/build/include
-  src/MusicBeatDetector/3rdParty/armadillo-code/include
-  src/MusicBeatDetector/3rdParty/OpenBLAS
+include_directories(SYSTEM
+    src/MusicBeatDetector/MusicBeatDetector/include
+    src/MusicBeatDetector/3rdParty/fftw/build/include
+    src/MusicBeatDetector/3rdParty/armadillo-code/include
+    src/MusicBeatDetector/3rdParty/OpenBLAS
 )
 
 install(DIRECTORY src/MusicBeatDetector/MusicBeatDetector/include/ DESTINATION include)
@@ -79,11 +79,11 @@ install(TARGETS beat_detector_node DESTINATION lib/${PROJECT_NAME})
 
 
 add_executable(capture_node src/capture_node.cpp
-  src/PcmDevices/PcmDevice.cpp
-  src/PcmDevices/AlsaPcmDevice.cpp
-  src/PcmDevices/PulseAudioPcmDevice.cpp
-  src/Utils/AlsaException.cpp
-  src/Utils/PulseAudioException.cpp
+    src/PcmDevices/PcmDevice.cpp
+    src/PcmDevices/AlsaPcmDevice.cpp
+    src/PcmDevices/PulseAudioPcmDevice.cpp
+    src/Utils/AlsaException.cpp
+    src/Utils/PulseAudioException.cpp
 )
 ament_target_dependencies(capture_node rclcpp std_msgs audio_utils_msgs)
 target_link_libraries(capture_node MusicBeatDetector asound pulse-simple pulse)
@@ -91,12 +91,12 @@ install(TARGETS capture_node DESTINATION lib/${PROJECT_NAME})
 
 
 add_executable(playback_node src/playback_node.cpp
-  src/PcmDevices/PcmDevice.cpp
-  src/PcmDevices/AlsaPcmDevice.cpp
-  src/PcmDevices/PulseAudioPcmDevice.cpp
-  src/Utils/AlsaException.cpp
-  src/Utils/PulseAudioException.cpp
-  src/Utils/Semaphore.cpp
+    src/PcmDevices/PcmDevice.cpp
+    src/PcmDevices/AlsaPcmDevice.cpp
+    src/PcmDevices/PulseAudioPcmDevice.cpp
+    src/Utils/AlsaException.cpp
+    src/Utils/PulseAudioException.cpp
+    src/Utils/Semaphore.cpp
 )
 ament_target_dependencies(playback_node rclcpp std_msgs audio_utils_msgs)
 target_link_libraries(playback_node MusicBeatDetector asound pulse-simple pulse)
@@ -114,11 +114,11 @@ install(DIRECTORY models DESTINATION share/${PROJECT_NAME})
 ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
-  scripts/format_conversion_node.py
-  scripts/raw_file_writer_node.py
-  scripts/resampling_node.py
-  scripts/split_channel_node.py
-  DESTINATION lib/${PROJECT_NAME}
+    scripts/format_conversion_node.py
+    scripts/raw_file_writer_node.py
+    scripts/resampling_node.py
+    scripts/split_channel_node.py
+    DESTINATION lib/${PROJECT_NAME}
 )
 
 # Launch files
@@ -126,11 +126,11 @@ install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
 
 # Exported libs
 ament_export_include_directories(
-  include
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/MusicBeatDetector/include
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/fftw/build/include
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/armadillo-code/include
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/OpenBLAS
+    include
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/MusicBeatDetector/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/fftw/build/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/armadillo-code/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/MusicBeatDetector/3rdParty/OpenBLAS
 )
 ament_export_libraries(
   MusicBeatDetector
