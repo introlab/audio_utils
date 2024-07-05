@@ -2,7 +2,7 @@
 
 ROS2 nodes and utilities for audio streams.
 
-For ROS1, please see the `main-ros1` branch.
+For ROS1, please see the `ros1` branch.
 
 Author(s): Marc-Antoine Maheux
 
