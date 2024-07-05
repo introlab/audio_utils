@@ -1,29 +1,31 @@
 #!/usr/bin/env python3
 
-import numpy as np
+import rclpy
+import rclpy.node
 
-import rospy
-
-from audio_utils.msg import AudioFrame
+from audio_utils_msgs.msg import AudioFrame
 from audio_utils import get_format_information, convert_audio_data_to_numpy_frames, convert_numpy_frames_to_audio_data
 
 
-class SplitChannelNode:
+class SplitChannelNode(rclpy.node.Node):
     def __init__(self):
-        self._input_format = rospy.get_param('~input_format', '')
-        self._output_format = rospy.get_param('~output_format', '')
-        self._channel_count = rospy.get_param('~channel_count', 0)
+        super().__init__('split_channel_node')
+
+        self._input_format = self.declare_parameter('input_format', '').get_parameter_value().string_value
+        self._output_format = self.declare_parameter('output_format', '').get_parameter_value().string_value
+        self._channel_count = self.declare_parameter('channel_count', 0).get_parameter_value().integer_value
 
         self._input_format_information = get_format_information(self._input_format)
         self._output_format_information = get_format_information(self._output_format)
 
-        self._audio_pubs = [rospy.Publisher(
-            'audio_out_{}'.format(i), AudioFrame, queue_size=10) for i in range(self._channel_count)]
-        self._audio_sub = rospy.Subscriber('audio_in', AudioFrame, self._audio_cb, queue_size=10)
+        self._audio_pubs = [self.create_publisher(
+            AudioFrame, f'audio_out_{i}', 10) for i in range(self._channel_count)]
+        self._audio_sub = self.create_subscription(AudioFrame, 'audio_in', self._audio_cb, 10)
 
     def _audio_cb(self, msg):
         if msg.format != self._input_format or msg.channel_count != self._channel_count:
-            rospy.logerr('Invalid frame (msg.format={}, msg.channel_count={})'.format(msg.format, msg.channel_count))
+            self.get_logger().error(
+                f'Invalid frame (msg.format={msg.format}, msg.channel_count={msg.channel_count})')
             return
 
         frames = convert_audio_data_to_numpy_frames(self._input_format_information, msg.channel_count, msg.data)
@@ -41,17 +43,22 @@ class SplitChannelNode:
             self._audio_pubs[i].publish(audio_frame_msg)
 
     def run(self):
-        rospy.spin()
+        rclpy.spin(self)
 
 
 def main():
-    rospy.init_node('split_channel_node')
+    rclpy.init()
     split_channel_node = SplitChannelNode()
-    split_channel_node.run()
+
+    try:
+        split_channel_node.run()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        split_channel_node.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == '__main__':
-    try:
-        main()
-    except rospy.ROSInterruptException:
-        pass
+    main()

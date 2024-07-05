@@ -1,30 +1,30 @@
 #!/usr/bin/env python3
 
-import numpy as np
+import rclpy
+import rclpy.node
 
-import rospy
-
-from audio_utils.msg import AudioFrame
+from audio_utils_msgs.msg import AudioFrame
 from audio_utils import get_format_information, convert_audio_data_to_numpy_frames, convert_numpy_frames_to_audio_data
 
 
-class FormatConversionNode:
+class FormatConversionNode(rclpy.node.Node):
     def __init__(self):
-        self._input_format = rospy.get_param('~input_format', '')
-        self._output_format = rospy.get_param('~output_format', '')
+        super().__init__('format_conversion_node')
+
+        self._input_format = self.declare_parameter('input_format', '').get_parameter_value().string_value
+        self._output_format = self.declare_parameter('output_format', '').get_parameter_value().string_value
 
         self._input_format_information = get_format_information(self._input_format)
         self._output_format_information = get_format_information(self._output_format)
 
-
         self._audio_frame_msg = AudioFrame()
-
-        self._audio_pub = rospy.Publisher('audio_out', AudioFrame, queue_size=10)
-        self._audio_sub = rospy.Subscriber('audio_in', AudioFrame, self._audio_cb, queue_size=10)
+        self._audio_pub = self.create_publisher(AudioFrame, 'audio_out', 10)
+        self._audio_sub = self.create_subscription(AudioFrame, 'audio_in', self._audio_cb, 10)
 
     def _audio_cb(self, msg):
         if msg.format != self._input_format:
-            rospy.logerr('Invalid input format (msg.format={}, param.input_format={})'.format(msg.format, self._input_format))
+            self.get_logger().error(
+                f'Invalid input format (msg.format={msg.format}, param.input_format={self._input_format})')
             return
 
         frames = convert_audio_data_to_numpy_frames(self._input_format_information, msg.channel_count, msg.data)
@@ -40,17 +40,22 @@ class FormatConversionNode:
         self._audio_pub.publish(self._audio_frame_msg)
 
     def run(self):
-        rospy.spin()
+        rclpy.spin(self)
 
 
 def main():
-    rospy.init_node('format_conversion_node')
+    rclpy.init()
     format_conversion_node = FormatConversionNode()
-    format_conversion_node.run()
+
+    try:
+        format_conversion_node.run()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        format_conversion_node.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == '__main__':
-    try:
-        main()
-    except rospy.ROSInterruptException:
-        pass
+    main()

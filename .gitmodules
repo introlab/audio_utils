@@ -1,3 +1,3 @@
-[submodule "src/MusicBeatDetector"]
-	path = src/MusicBeatDetector
+[submodule "audio_utils/src/MusicBeatDetector"]
+	path = audio_utils/src/MusicBeatDetector
 	url = https://github.com/introlab/MusicBeatDetector.git
