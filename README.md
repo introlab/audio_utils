@@ -58,6 +58,7 @@ This node captures the sound from an ALSA or PulseAudio device and publishes it 
 - `latency_us` (int): The capture latency in microseconds. The default value is `64000`.
 - `channel_map` (Array of string): The PulseAudio channel mapping. If empty or omitted, the default mapping is used.
   This parameter must be set only with the PulseAudio backend. The default value is `[]`.
+- `queue_size` (int): The publisher queue size. The default value is `1`.
 
 ### Published Topics
 
@@ -84,6 +85,7 @@ This node captures the sound from a topic and plays it to an ALSA or PulseAudio 
 - `latency_us` (int): The capture latency in microseconds. The default value is `64000`.
 - `channel_map` (Array of string): The PulseAudio channel mapping. If empty or omitted, the default mapping is used.
   This parameter must be set only with the PulseAudio backend. The default value is `[]`.
+- `queue_size` (int): The publisher queue size. The default value is `1`.
 
 ### Subscribed Topics
 
