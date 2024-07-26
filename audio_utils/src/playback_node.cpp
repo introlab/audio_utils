@@ -60,6 +60,8 @@ public:
             RCLCPP_WARN(get_logger(), "The parameter channel_map is only supported with the PulseAudio backend");
         }
 
+        size_t queueSize = declare_parameter("queue_size", 1);
+
         m_frameDuration = std::chrono::milliseconds(1000 * m_frameSampleCount / m_samplingFrequency);
 
         m_playbackDevice = createPlaybackDevice();
@@ -68,7 +70,7 @@ public:
 
         m_audioSub = create_subscription<audio_utils_msgs::msg::AudioFrame>(
             "audio_in",
-            100,
+            queueSize,
             [this](const audio_utils_msgs::msg::AudioFrame::SharedPtr msg) { audioCallback(msg); });
     }
 

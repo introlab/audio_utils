@@ -26,6 +26,8 @@ struct CaptureNodeConfiguration
     bool merge;
     float gain;
 
+    size_t queueSize;
+
     CaptureNodeConfiguration()
         : backend(PcmDevice::Backend::Alsa),
           format(PcmAudioFrameFormat::Signed8),
@@ -173,9 +175,10 @@ std::unique_ptr<PcmDevice> createCaptureDevice(const CaptureNodeConfiguration& c
 void run(
     std::shared_ptr<rclcpp::Node>& node,
     std::unique_ptr<PcmDevice> captureDevice,
-    const CaptureNodeConfiguration& configuration,
-    rclcpp::Publisher<audio_utils_msgs::msg::AudioFrame>::SharedPtr& audioPub)
+    const CaptureNodeConfiguration& configuration)
 {
+    auto audioPub = node->create_publisher<audio_utils_msgs::msg::AudioFrame>("audio_out", configuration.queueSize);
+
     PcmAudioFrame manyChannelPcmFrame(configuration.format, configuration.channelCount, configuration.frameSampleCount);
     PcmAudioFrame oneChannelPcmFrame(configuration.format, 1, configuration.frameSampleCount);
     PackedAudioFrame<float> manyChannelFrame(configuration.channelCount, configuration.frameSampleCount);
@@ -225,7 +228,6 @@ int main(int argc, char** argv)
     rclcpp::init(argc, argv);
 
     auto node = rclcpp::Node::make_shared("capture_node");
-    auto audioPub = node->create_publisher<audio_utils_msgs::msg::AudioFrame>("audio_out", 100);
 
     CaptureNodeConfiguration configuration;
     configuration.backendString = node->declare_parameter("backend", "alsa");
@@ -250,7 +252,9 @@ int main(int argc, char** argv)
         configuration.merge = node->declare_parameter("merge", false);
         configuration.gain = node->declare_parameter("gain", 1.f);
 
-        run(node, createCaptureDevice(configuration), configuration, audioPub);
+        configuration.queueSize = node->declare_parameter("queue_size", 1);
+
+        run(node, createCaptureDevice(configuration), configuration);
     }
     catch (const std::exception& e)
     {
