@@ -112,7 +112,7 @@ void AlsaPcmDevice::read(PcmAudioFrame& frame)
         }
     }
 
-    if (err != periodSize)
+    if (static_cast<snd_pcm_uframes_t>(err) != periodSize)
     {
         THROW_ALSA_EXCEPTION("Read from audio interface failed", err, snd_strerror(err));
     }
@@ -135,7 +135,7 @@ void AlsaPcmDevice::write(const PcmAudioFrame& frame)
         }
     }
 
-    if (err != periodSize)
+    if (static_cast<snd_pcm_uframes_t>(err) != periodSize)
     {
         THROW_ALSA_EXCEPTION("Write to audio interface failed", err, snd_strerror(err));
     }
