@@ -114,12 +114,42 @@ install(DIRECTORY models DESTINATION share/${PROJECT_NAME})
 ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
+    scripts/end_of_utterance_node.py
     scripts/format_conversion_node.py
     scripts/raw_file_writer_node.py
     scripts/resampling_node.py
     scripts/split_channel_node.py
     DESTINATION lib/${PROJECT_NAME}
 )
+
+# Download end of utterance model from huggingface repo:
+find_program(HF_CLI huggingface-cli REQUIRED
+    HINTS "$ENV{HOME}/.local/bin" "/usr/local/bin" "/usr/bin"
+)
+
+set(HF_MODEL_ID  "latishab/turnsense")
+set(HF_MODEL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/models/turnsense")
+
+if(NOT EXISTS "${HF_MODEL_DIR}")
+    message(STATUS "Downloading HuggingFace model: ${HF_MODEL_ID}")
+    execute_process(
+        COMMAND ${HF_CLI} download ${HF_MODEL_ID}
+                --local-dir ${HF_MODEL_DIR}
+                --local-dir-use-symlinks False
+        RESULT_VARIABLE HF_DOWNLOAD_RESULT
+        ERROR_VARIABLE  HF_DOWNLOAD_ERROR
+    )
+    if(NOT HF_DOWNLOAD_RESULT EQUAL 0)
+        message(FATAL_ERROR
+            "Failed to download model '${HF_MODEL_ID}'.\n"
+            "Error: ${HF_DOWNLOAD_ERROR}\n"
+            "Make sure you are logged in via: huggingface-cli login"
+        )
+    endif()
+    message(STATUS "Model downloaded to: ${HF_MODEL_DIR}")
+else()
+    message(STATUS "Model already present at: ${HF_MODEL_DIR}")
+endif()
 
 # Launch files
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
