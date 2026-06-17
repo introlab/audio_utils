@@ -1,2 +1,2 @@
 std_msgs/Header header
-string data
+bool sentence_complete
