@@ -4,4 +4,4 @@ cmake-build-release
 build
 install
 log
-audio_utils/models/turnsense
+audio_utils/models/pipecat-ai

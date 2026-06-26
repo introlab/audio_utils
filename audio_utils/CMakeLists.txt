@@ -127,8 +127,8 @@ find_program(HF_CLI huggingface-cli REQUIRED
     HINTS "$ENV{HOME}/.local/bin" "/usr/local/bin" "/usr/bin"
 )
 
-set(HF_MODEL_ID  "latishab/turnsense")
-set(HF_MODEL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/models/turnsense")
+set(HF_MODEL_ID  "pipecat-ai/smart-turn-v3")
+set(HF_MODEL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/models/pipecat-ai")
 
 if(NOT EXISTS "${HF_MODEL_DIR}")
     message(STATUS "Downloading HuggingFace model: ${HF_MODEL_ID}")
