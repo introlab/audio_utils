@@ -4,4 +4,3 @@ cmake-build-release
 build
 install
 log
-audio_utils/models/pipecat-ai
