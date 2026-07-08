@@ -3,11 +3,9 @@
 import queue
 from collections import deque
 import threading
-import pdb
 
 import time
 import os
-import re
 
 import onnxruntime as ort
 from transformers import WhisperFeatureExtractor
@@ -17,8 +15,6 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from rclpy.clock import Clock
-
-import hbba_lite
 
 from std_msgs.msg import Header
 from audio_utils_msgs.msg import CompleteUtterance, AudioFrame, VoiceActivity
@@ -47,7 +43,6 @@ class EoUNode(rclpy.node.Node):
         so.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
         self._session = ort.InferenceSession(EOU_MODEL_PATH, sess_options=so)
 
-        self._hbba_filter_state = hbba_lite.OnOffHbbaFilterState(self, 'eou_filter')
         self._semantic_analysis_pub = self.create_publisher(CompleteUtterance, 'semantic_analysis', 10)
         
         self._audio_sub = self.create_subscription(AudioFrame, 'audio_in', self._audio_callback, 10)
@@ -77,7 +72,7 @@ class EoUNode(rclpy.node.Node):
         Callback for incoming audio messages.
 
         Validates the audio frame format and appends the PCM samples to the
-        internal buffer. No-op when HBBA filtering is active.
+        internal buffer.
 
         Args:
             msg: Incoming audio message containing the following fields:
@@ -94,9 +89,7 @@ class EoUNode(rclpy.node.Node):
             - Extends `self._buffer` with flattened int16 audio frames
             (thread-safe via `self._buffer_lock`).
         """
-        if self._hbba_filter_state.is_filtering_all_messages:
-            pass
-        elif msg.channel_count != SUPPORTED_CHANNEL_COUNT or msg.sampling_frequency != SUPPORTED_SAMPLE_RATE_HZ:
+        if msg.channel_count != SUPPORTED_CHANNEL_COUNT or msg.sampling_frequency != SUPPORTED_SAMPLE_RATE_HZ:
             self.get_logger().error('Invalid audio frame (msg.channel_count={}, msg.sampling_frequency={}})'
                          .format(msg.channel_count, msg.sampling_frequency))
         else:
@@ -110,8 +103,8 @@ class EoUNode(rclpy.node.Node):
         Callback for incoming voice activity detection (VAD) messages.
 
         Tracks rising and falling edges of the voice activity signal. On a rising
-        edge, any pending utterance delay timer is cancelled. On a falling edge,
-        triggers the detection event if HBBA filtering is not active.
+        edge, any pending utterance delay timer is cancelled. Triggers the detection event
+        on a falling edge.
 
         Args:
             msg: Incoming VAD message containing the following fields:
@@ -139,7 +132,7 @@ class EoUNode(rclpy.node.Node):
                     self._utterance_delay_timer.cancel()
                     self.destroy_timer(self._utterance_delay_timer)
                     self._utterance_delay_timer = None
-        elif falling_edge and not self._hbba_filter_state.is_filtering_all_messages:
+        elif falling_edge:
             self._detection_event.set()
 
 
@@ -187,43 +180,41 @@ class EoUNode(rclpy.node.Node):
         Runs the end-of-utterance detection model on the given audio data.
 
         Extracts features from the audio, runs ONNX inference, and compares the
-        output probability against the configured detection threshold. No-op
-        when HBBA filtering is active, returning None in that case.
+        output probability against the configured detection threshold.
 
         Args:
             audio_in (np.array): Raw PCM audio samples to run inference on.
 
         Returns:
             bool: True if the utterance is predicted to be complete, False if it
-                is still ongoing. Returns None if HBBA filtering is active.
+                is still ongoing.
 
         Side Effects:
             - Logs prediction result and inference duration at INFO level.
         """
-        if not self._hbba_filter_state.is_filtering_all_messages:
-            start = time.perf_counter()
-            inputs = self._feature_extractor(
-                audio_in,
-                sampling_rate=SUPPORTED_SAMPLE_RATE_HZ,
-                return_tensors="np",
-                padding="max_length",
-                max_length=REQUIRED_SAMPLE_LENGTH_SEC * SUPPORTED_SAMPLE_RATE_HZ,
-                truncation=True,
-                do_normalize=True,
-            )
-            
-            # Run inference
-            model_inputs = inputs.input_features.squeeze(0).astype(np.float32)
-            model_inputs = np.expand_dims(model_inputs, axis=0)
-            model_outputs = self._session.run(None, {"input_features": model_inputs})
+        start = time.perf_counter()
+        inputs = self._feature_extractor(
+            audio_in,
+            sampling_rate=SUPPORTED_SAMPLE_RATE_HZ,
+            return_tensors="np",
+            padding="max_length",
+            max_length=REQUIRED_SAMPLE_LENGTH_SEC * SUPPORTED_SAMPLE_RATE_HZ,
+            truncation=True,
+            do_normalize=True,
+        )
+        
+        # Run inference
+        model_inputs = inputs.input_features.squeeze(0).astype(np.float32)
+        model_inputs = np.expand_dims(model_inputs, axis=0)
+        model_outputs = self._session.run(None, {"input_features": model_inputs})
 
-            probability = model_outputs[0][0].item()
-            prediction = True if probability > self._eou_detection_threshold else False
+        probability = model_outputs[0][0].item()
+        prediction = True if probability > self._eou_detection_threshold else False
 
-            end = time.perf_counter()
-            prediction_time_sec = end-start
-            self.get_logger().info(f"Prediction: {'Done talking' if prediction else 'Still going'} | Time taken to predict: {prediction_time_sec:.6f}")
-            return prediction
+        end = time.perf_counter()
+        prediction_time_sec = end-start
+        self.get_logger().info(f"Prediction: {'Done talking' if prediction else 'Still going'} | Time taken to predict: {prediction_time_sec:.6f}")
+        return prediction
 
     def _on_timer_expired(self):
         """
