@@ -22,7 +22,7 @@ from builtin_interfaces.msg import Time
 from ament_index_python.packages import get_package_share_directory
 
 EOU_TOKENIZER_MAX_LENGHT = 256
-EOU_MODEL_PATH = os.path.join(get_package_share_directory('audio_utils'), 'models', 'pipecat-ai', 'smart-turn-v3.2-cpu.onnx')
+EOU_MODEL_PATH = os.path.join(get_package_share_directory('audio_utils'), 'models', 'smart-turn-v3.2-cpu.onnx')
 
 SUPPORTED_CHANNEL_COUNT = 1
 SUPPORTED_SAMPLE_RATE_HZ = 16000

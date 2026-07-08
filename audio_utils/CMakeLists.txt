@@ -122,34 +122,6 @@ install(PROGRAMS
     DESTINATION lib/${PROJECT_NAME}
 )
 
-# Download end of utterance model from huggingface repo:
-find_program(HF_CLI huggingface-cli REQUIRED
-    HINTS "$ENV{HOME}/.local/bin" "/usr/local/bin" "/usr/bin"
-)
-
-set(HF_MODEL_ID  "pipecat-ai/smart-turn-v3")
-set(HF_MODEL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/models/pipecat-ai")
-
-if(NOT EXISTS "${HF_MODEL_DIR}")
-    message(STATUS "Downloading HuggingFace model: ${HF_MODEL_ID}")
-    execute_process(
-        COMMAND ${HF_CLI} download ${HF_MODEL_ID}
-                --local-dir ${HF_MODEL_DIR}
-                --local-dir-use-symlinks False
-        RESULT_VARIABLE HF_DOWNLOAD_RESULT
-        ERROR_VARIABLE  HF_DOWNLOAD_ERROR
-    )
-    if(NOT HF_DOWNLOAD_RESULT EQUAL 0)
-        message(FATAL_ERROR
-            "Failed to download model '${HF_MODEL_ID}'.\n"
-            "Error: ${HF_DOWNLOAD_ERROR}\n"
-            "Make sure you are logged in via: huggingface-cli login"
-        )
-    endif()
-    message(STATUS "Model downloaded to: ${HF_MODEL_DIR}")
-else()
-    message(STATUS "Model already present at: ${HF_MODEL_DIR}")
-endif()
 
 # Launch files
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
