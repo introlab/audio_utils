@@ -114,12 +114,14 @@ install(DIRECTORY models DESTINATION share/${PROJECT_NAME})
 ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
+    scripts/end_of_utterance_node.py
     scripts/format_conversion_node.py
     scripts/raw_file_writer_node.py
     scripts/resampling_node.py
     scripts/split_channel_node.py
     DESTINATION lib/${PROJECT_NAME}
 )
+
 
 # Launch files
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})

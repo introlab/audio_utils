@@ -142,6 +142,26 @@ The default value is `500`.
 
 - `voice_activity` ([audio_utils_msgs/VoiceActivity](audio_utils_msgs/msg/VoiceActivity.msg)) The voice activity detection result.
 
+## `eou_node`
+
+This node performs end-of-utterance (eou) detection using the [Smart Turn v3.2](https://github.com/pipecat-ai/smart-turn) ONNX model. It combines voice activity edges with a semantic turn-detection model to decide when a speaker has finished talking. On each voice-activity falling edge, it runs inference over the most recent 8 seconds of audio, and if the model predicts the utterance is still ongoing, it starts a timeout after which the utterance is declared complete regardless.
+The [models](models) folder contains the `smart-turn-v3.2-cpu.onnx` model. The license of the model is [BSD 2](models/SMART_TURN_LICENSE).
+
+### Parameters
+
+- `utterance_max_wait` (double): The maximum time, in seconds, to wait after a voice-activity falling edge before declaring the utterance complete if the model has not already predicted completion. The default value is `4.0`.
+- `eou_detection_threshold` (double): The probability threshold above which the model's output is considered a completed utterance. The default value is `0.5`.
+
+### Subscribed Topics
+
+- `audio_in` ([audio_utils_msgs/AudioFrame](audio_utils_msgs/msg/AudioFrame.msg)) The sound
+  to analyze. The channel count must be 1. The sample frequency must be 16000 Hz.
+- `voice_activity` ([audio_utils_msgs/VoiceActivity](audio_utils_msgs/msg/VoiceActivity.msg)) The voice activity detection result used to trigger end-of-utterance evaluation.
+
+### Published Topics
+
+- `semantic_analysis` ([audio_utils_msgs/CompleteUtterance](audio_utils_msgs/msg/CompleteUtterance.msg)) The end-of-utterance detection result. `sentence_complete` is `true` either when the model predicts the utterance is done, or when `utterance_max_wait` elapses without the model detecting completion.
+
 ## `format_conversion_node.py`
 
 This node converts the format of an audio topic.

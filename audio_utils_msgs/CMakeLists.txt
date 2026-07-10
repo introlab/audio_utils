@@ -22,6 +22,7 @@ find_package(rosidl_default_generators REQUIRED)
 
 # Generate messages
 rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/CompleteUtterance.msg"
   "msg/AudioFrame.msg"
   "msg/VoiceActivity.msg"
   DEPENDENCIES std_msgs
